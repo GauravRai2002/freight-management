@@ -14,6 +14,11 @@ interface ApiResponse<T> {
     };
 }
 
+interface RequestOptions extends RequestInit {
+    token?: string;
+    orgId?: string;
+}
+
 class ApiClient {
     private baseUrl: string;
 
@@ -23,17 +28,44 @@ class ApiClient {
 
     private async request<T>(
         endpoint: string,
-        options: RequestInit = {}
+        options: RequestOptions = {}
     ): Promise<T> {
+        const { token, orgId, ...fetchOptions } = options;
         const url = `${this.baseUrl}${endpoint}`;
 
-        const config: RequestInit = {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
         };
+
+        // Add existing headers
+        if (fetchOptions.headers) {
+            const existingHeaders = new Headers(fetchOptions.headers);
+            existingHeaders.forEach((value, key) => {
+                headers[key] = value;
+            });
+        }
+
+        // Add authorization header if token provided
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        // Add organization ID header if provided
+        if (orgId) {
+            headers['x-organization-id'] = orgId;
+        }
+
+        const config: RequestInit = {
+            ...fetchOptions,
+            headers,
+        };
+
+        // Debug logging
+        console.log(`[API] ${fetchOptions.method || 'GET'} ${endpoint}`, {
+            hasToken: !!token,
+            hasOrgId: !!orgId,
+            headers: Object.keys(headers),
+        });
 
         const response = await fetch(url, config);
 
@@ -53,26 +85,28 @@ class ApiClient {
         return json.data;
     }
 
-    async get<T>(endpoint: string): Promise<T> {
-        return this.request<T>(endpoint, { method: 'GET' });
+    async get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
+        return this.request<T>(endpoint, { ...options, method: 'GET' });
     }
 
-    async post<T>(endpoint: string, data: unknown): Promise<T> {
+    async post<T>(endpoint: string, data: unknown, options?: RequestOptions): Promise<T> {
         return this.request<T>(endpoint, {
+            ...options,
             method: 'POST',
             body: JSON.stringify(data),
         });
     }
 
-    async put<T>(endpoint: string, data: unknown): Promise<T> {
+    async put<T>(endpoint: string, data: unknown, options?: RequestOptions): Promise<T> {
         return this.request<T>(endpoint, {
+            ...options,
             method: 'PUT',
             body: JSON.stringify(data),
         });
     }
 
-    async delete(endpoint: string): Promise<void> {
-        return this.request<void>(endpoint, { method: 'DELETE' });
+    async delete(endpoint: string, options?: RequestOptions): Promise<void> {
+        return this.request<void>(endpoint, { ...options, method: 'DELETE' });
     }
 }
 

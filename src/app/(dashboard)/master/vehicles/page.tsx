@@ -38,7 +38,7 @@ import { Plus, Pencil, Trash2, Truck, Search } from "lucide-react";
 const VEHICLE_TYPES = ["MXL", "SXL", "LCV", "HCV", "Container", "Trailer", "Tanker", "Other"];
 
 export default function VehiclesPage() {
-    const { vehicles, loading, fetchVehicles, createVehicle, editVehicle, removeVehicle } = useVehicles();
+    const { vehicles, loading, isReady, fetchVehicles, createVehicle, editVehicle, removeVehicle } = useVehicles();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -52,8 +52,10 @@ export default function VehiclesPage() {
     });
 
     useEffect(() => {
-        fetchVehicles();
-    }, [fetchVehicles]);
+        if (isReady) {
+            fetchVehicles();
+        }
+    }, [isReady, fetchVehicles]);
 
     const filteredVehicles = vehicles.filter(
         (v) =>

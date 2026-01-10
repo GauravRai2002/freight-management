@@ -20,6 +20,8 @@ export default function SignInPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [needsSecondFactor, setNeedsSecondFactor] = useState(false);
+    const [verificationCode, setVerificationCode] = useState("");
 
     useEffect(() => {
         if (isSignedIn && isLoaded) {
@@ -45,12 +47,45 @@ export default function SignInPage() {
             if (result.status === "complete") {
                 await setActive({ session: result.createdSessionId });
                 router.push("/");
+            } else if (result.status === "needs_second_factor") {
+                // User has 2FA enabled, prepare second factor
+                await signIn.prepareSecondFactor({
+                    strategy: "email_code",
+                });
+                setNeedsSecondFactor(true);
             } else {
                 setError("Sign in incomplete. Please try again.");
             }
         } catch (err: unknown) {
             const clerkError = err as { errors?: Array<{ message: string }> };
             setError(clerkError.errors?.[0]?.message || "Invalid email or password");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerifyCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!isLoaded) return;
+
+        setIsLoading(true);
+        setError("");
+
+        try {
+            const result = await signIn.attemptSecondFactor({
+                strategy: "email_code",
+                code: verificationCode,
+            });
+
+            if (result.status === "complete") {
+                await setActive({ session: result.createdSessionId });
+                router.push("/");
+            } else {
+                setError("Verification incomplete. Please try again.");
+            }
+        } catch (err: unknown) {
+            const clerkError = err as { errors?: Array<{ message: string }> };
+            setError(clerkError.errors?.[0]?.message || "Invalid verification code");
         } finally {
             setIsLoading(false);
         }
@@ -64,66 +99,115 @@ export default function SignInPage() {
                         <Truck className="h-6 w-6 text-primary-foreground" />
                     </div>
                     <div>
-                        <CardTitle className="text-2xl">Welcome back</CardTitle>
-                        <CardDescription>Sign in to your FleetTracker account</CardDescription>
+                        <CardTitle className="text-2xl">
+                            {needsSecondFactor ? "Verify it's you" : "Welcome back"}
+                        </CardTitle>
+                        <CardDescription>
+                            {needsSecondFactor
+                                ? "Enter the verification code sent to your email"
+                                : "Sign in to your FleetTracker account"}
+                        </CardDescription>
                     </div>
                 </CardHeader>
-                <form onSubmit={handleSubmit}>
-                    <CardContent className="space-y-4">
-                        {error && (
-                            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-                                {error}
-                            </div>
-                        )}
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                disabled={isLoading}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <div className="relative">
+                {!needsSecondFactor ? (
+                    <form onSubmit={handleSubmit}>
+                        <CardContent className="space-y-4">
+                            {error && (
+                                <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                                    {error}
+                                </div>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
                                 <Input
-                                    id="password"
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    id="email"
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={isLoading}
                                 />
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
                             </div>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col gap-4">
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Sign In
-                        </Button>
-                        <p className="text-sm text-muted-foreground text-center">
-                            Don&apos;t have an account?{" "}
-                            <Link href="/sign-up" className="text-primary hover:underline font-medium">
-                                Sign up
-                            </Link>
-                        </p>
-                    </CardFooter>
-                </form>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        disabled={isLoading}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col gap-4">
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Sign In
+                            </Button>
+                            <p className="text-sm text-muted-foreground text-center">
+                                Don&apos;t have an account?{" "}
+                                <Link href="/sign-up" className="text-primary hover:underline font-medium">
+                                    Sign up
+                                </Link>
+                            </p>
+                        </CardFooter>
+                    </form>
+                ) : (
+                    <form onSubmit={handleVerifyCode}>
+                        <CardContent className="space-y-4">
+                            {error && (
+                                <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                                    {error}
+                                </div>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="code">Verification Code</Label>
+                                <Input
+                                    id="code"
+                                    type="text"
+                                    placeholder="Enter code"
+                                    value={verificationCode}
+                                    onChange={(e) => setVerificationCode(e.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                    autoFocus
+                                />
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col gap-4">
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Verify
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full"
+                                onClick={() => {
+                                    setNeedsSecondFactor(false);
+                                    setVerificationCode("");
+                                    setError("");
+                                }}
+                            >
+                                Back to Sign In
+                            </Button>
+                        </CardFooter>
+                    </form>
+                )}
             </Card>
         </div>
     );

@@ -6,28 +6,32 @@ import { setDriverAdvances, addDriverAdvance, updateDriverAdvance, deleteDriverA
 import { DriverAdvance } from "@/types";
 import { api } from "@/lib/api";
 import { toast } from "@/components/ui/toaster";
+import { useAuthContext } from "./useAuthContext";
 
 export function useDriverAdvances() {
     const dispatch = useAppDispatch();
     const driverAdvances = useAppSelector((state) => state.driverAdvances.items);
     const loading = useAppSelector((state) => state.driverAdvances.loading);
+    const { getAuthContext } = useAuthContext();
 
     const fetchDriverAdvances = useCallback(async () => {
         dispatch(setLoading(true));
         try {
-            const data = await api.get<DriverAdvance[]>("/api/driver-advances");
+            const auth = await getAuthContext();
+            const data = await api.get<DriverAdvance[]>("/api/driver-advances", auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(setDriverAdvances(data));
         } catch (error) {
             console.error("Failed to fetch driver advances:", error);
             toast.error("Failed to load driver advances");
             dispatch(setLoading(false));
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     const createDriverAdvance = useCallback(async (data: Omit<DriverAdvance, "id" | "createdAt" | "updatedAt">) => {
         toast.loading("Creating driver advance...");
         try {
-            const advance = await api.post<DriverAdvance>("/api/driver-advances", data);
+            const auth = await getAuthContext();
+            const advance = await api.post<DriverAdvance>("/api/driver-advances", data, auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(addDriverAdvance(advance));
             toast.success("Driver advance created successfully");
             return advance;
@@ -36,12 +40,13 @@ export function useDriverAdvances() {
             toast.error("Failed to create driver advance");
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     const editDriverAdvance = useCallback(async (id: string, updates: Partial<DriverAdvance>) => {
         toast.loading("Updating driver advance...");
         try {
-            const advance = await api.put<DriverAdvance>(`/api/driver-advances/${id}`, updates);
+            const auth = await getAuthContext();
+            const advance = await api.put<DriverAdvance>(`/api/driver-advances/${id}`, updates, auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(updateDriverAdvance({ id, updates: advance }));
             toast.success("Driver advance updated successfully");
             return advance;
@@ -50,12 +55,13 @@ export function useDriverAdvances() {
             toast.error("Failed to update driver advance");
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     const removeDriverAdvance = useCallback(async (id: string) => {
         toast.loading("Deleting driver advance...");
         try {
-            await api.delete(`/api/driver-advances/${id}`);
+            const auth = await getAuthContext();
+            await api.delete(`/api/driver-advances/${id}`, auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(deleteDriverAdvance(id));
             toast.success("Driver advance deleted successfully");
         } catch (error) {
@@ -63,7 +69,7 @@ export function useDriverAdvances() {
             toast.error("Failed to delete driver advance");
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     return {
         driverAdvances,

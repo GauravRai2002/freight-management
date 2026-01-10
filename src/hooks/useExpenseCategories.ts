@@ -6,28 +6,32 @@ import { setExpenseCategories, addExpenseCategory, updateExpenseCategory, delete
 import { ExpenseCategory } from "@/types";
 import { api } from "@/lib/api";
 import { toast } from "@/components/ui/toaster";
+import { useAuthContext } from "./useAuthContext";
 
 export function useExpenseCategories() {
     const dispatch = useAppDispatch();
     const expenseCategories = useAppSelector((state) => state.expenseCategories.items);
     const loading = useAppSelector((state) => state.expenseCategories.loading);
+    const { getAuthContext } = useAuthContext();
 
     const fetchExpenseCategories = useCallback(async () => {
         dispatch(setLoading(true));
         try {
-            const data = await api.get<ExpenseCategory[]>("/api/expense-categories");
+            const auth = await getAuthContext();
+            const data = await api.get<ExpenseCategory[]>("/api/expense-categories", auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(setExpenseCategories(data));
         } catch (error) {
             console.error("Failed to fetch expense categories:", error);
             toast.error("Failed to load expense categories");
             dispatch(setLoading(false));
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     const createExpenseCategory = useCallback(async (data: Omit<ExpenseCategory, "id" | "createdAt" | "updatedAt">) => {
         toast.loading("Creating expense category...");
         try {
-            const category = await api.post<ExpenseCategory>("/api/expense-categories", data);
+            const auth = await getAuthContext();
+            const category = await api.post<ExpenseCategory>("/api/expense-categories", data, auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(addExpenseCategory(category));
             toast.success("Expense category created successfully");
             return category;
@@ -36,12 +40,13 @@ export function useExpenseCategories() {
             toast.error("Failed to create expense category");
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     const editExpenseCategory = useCallback(async (id: string, updates: Partial<ExpenseCategory>) => {
         toast.loading("Updating expense category...");
         try {
-            const category = await api.put<ExpenseCategory>(`/api/expense-categories/${id}`, updates);
+            const auth = await getAuthContext();
+            const category = await api.put<ExpenseCategory>(`/api/expense-categories/${id}`, updates, auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(updateExpenseCategory({ id, updates: category }));
             toast.success("Expense category updated successfully");
             return category;
@@ -50,12 +55,13 @@ export function useExpenseCategories() {
             toast.error("Failed to update expense category");
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     const removeExpenseCategory = useCallback(async (id: string) => {
         toast.loading("Deleting expense category...");
         try {
-            await api.delete(`/api/expense-categories/${id}`);
+            const auth = await getAuthContext();
+            await api.delete(`/api/expense-categories/${id}`, auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             dispatch(deleteExpenseCategory(id));
             toast.success("Expense category deleted successfully");
         } catch (error) {
@@ -63,7 +69,7 @@ export function useExpenseCategories() {
             toast.error("Failed to delete expense category");
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, getAuthContext]);
 
     return {
         expenseCategories,

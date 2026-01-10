@@ -118,7 +118,7 @@ export function OrgSwitcher() {
                     <Plus className="h-4 w-4 mr-2" />
                     Create Organization
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/settings/members")} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
                     <Settings className="h-4 w-4 mr-2" />
                     Manage Members
                 </DropdownMenuItem>

@@ -25,6 +25,7 @@ import {
     BarChart3,
     PieChart,
     ChevronRight,
+    Settings,
 } from "lucide-react";
 
 interface NavItem {
@@ -75,6 +76,12 @@ const navigation: NavSection[] = [
         items: [
             { title: "Trip Report", href: "/reports/trip-report", icon: BarChart3 },
             { title: "Balance Sheet", href: "/reports/balance-sheet", icon: PieChart },
+        ],
+    },
+    {
+        title: "Admin",
+        items: [
+            { title: "Settings", href: "/settings", icon: Settings },
         ],
     },
 ];
