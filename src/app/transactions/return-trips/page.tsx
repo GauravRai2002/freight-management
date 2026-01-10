@@ -10,19 +10,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadReturnTrips, addReturnTrip, updateReturnTrip, deleteReturnTrip } from "@/store/slices/returnTripSlice";
-import { loadBillingParties } from "@/store/slices/billingPartySlice";
-import { loadPaymentModes } from "@/store/slices/paymentModeSlice";
+import { useReturnTrips, useBillingParties, usePaymentModes } from "@/hooks";
 import { ReturnTrip } from "@/types";
 import { formatCurrency, formatDate, toISODateString } from "@/lib/utils";
 import { Plus, Pencil, Trash2, RotateCcw, Search } from "lucide-react";
 
 export default function ReturnTripsPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.returnTrips);
-    const { items: parties } = useAppSelector((state) => state.billingParties);
-    const { items: paymentModes } = useAppSelector((state) => state.paymentModes);
+    const { returnTrips: items, loading, fetchReturnTrips, createReturnTrip, editReturnTrip, removeReturnTrip } = useReturnTrips();
+    const { billingParties: parties, fetchBillingParties } = useBillingParties();
+    const { paymentModes, fetchPaymentModes } = usePaymentModes();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -38,10 +34,10 @@ export default function ReturnTripsPage() {
     const [formData, setFormData] = useState(defaultFormData);
 
     useEffect(() => {
-        dispatch(loadReturnTrips());
-        dispatch(loadBillingParties());
-        dispatch(loadPaymentModes());
-    }, [dispatch]);
+        fetchReturnTrips();
+        fetchBillingParties();
+        fetchPaymentModes();
+    }, [fetchReturnTrips, fetchBillingParties, fetchPaymentModes]);
 
     const filteredItems = items.filter((i) =>
         i.billingPartyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,16 +74,18 @@ export default function ReturnTripsPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) dispatch(updateReturnTrip({ id: editingItem.id, updates: formData }));
-        else dispatch(addReturnTrip(formData));
-        setIsDialogOpen(false);
-        setEditingItem(null);
+        try {
+            if (editingItem) await editReturnTrip(editingItem.id, formData);
+            else await createReturnTrip(formData);
+            setIsDialogOpen(false);
+            setEditingItem(null);
+        } catch { }
     };
 
-    const handleDelete = () => {
-        if (deletingItem) { dispatch(deleteReturnTrip(deletingItem.id)); setIsDeleteDialogOpen(false); }
+    const handleDelete = async () => {
+        if (deletingItem) { try { await removeReturnTrip(deletingItem.id); setIsDeleteDialogOpen(false); } catch { } }
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><div className="text-muted-foreground">Loading...</div></div>;

@@ -30,13 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-    loadVehicles,
-    addVehicle,
-    updateVehicle,
-    deleteVehicle,
-} from "@/store/slices/vehicleSlice";
+import { useVehicles } from "@/hooks";
 import { Vehicle } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Truck, Search } from "lucide-react";
@@ -44,8 +38,7 @@ import { Plus, Pencil, Trash2, Truck, Search } from "lucide-react";
 const VEHICLE_TYPES = ["MXL", "SXL", "LCV", "HCV", "Container", "Trailer", "Tanker", "Other"];
 
 export default function VehiclesPage() {
-    const dispatch = useAppDispatch();
-    const { items: vehicles, loading } = useAppSelector((state) => state.vehicles);
+    const { vehicles, loading, fetchVehicles, createVehicle, editVehicle, removeVehicle } = useVehicles();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -59,8 +52,8 @@ export default function VehiclesPage() {
     });
 
     useEffect(() => {
-        dispatch(loadVehicles());
-    }, [dispatch]);
+        fetchVehicles();
+    }, [fetchVehicles]);
 
     const filteredVehicles = vehicles.filter(
         (v) =>
@@ -82,30 +75,33 @@ export default function VehiclesPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (editingVehicle) {
-            dispatch(
-                updateVehicle({
-                    id: editingVehicle.id,
-                    updates: formData,
-                })
-            );
-        } else {
-            dispatch(addVehicle(formData));
-        }
+        try {
+            if (editingVehicle) {
+                await editVehicle(editingVehicle.id, formData);
+            } else {
+                await createVehicle(formData);
+            }
 
-        setIsDialogOpen(false);
-        setFormData({ vehNo: "", vehType: "" });
-        setEditingVehicle(null);
+            setIsDialogOpen(false);
+            setFormData({ vehNo: "", vehType: "" });
+            setEditingVehicle(null);
+        } catch {
+            // Error is handled in the hook with toast
+        }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (deletingVehicle) {
-            dispatch(deleteVehicle(deletingVehicle.id));
-            setIsDeleteDialogOpen(false);
-            setDeletingVehicle(null);
+            try {
+                await removeVehicle(deletingVehicle.id);
+                setIsDeleteDialogOpen(false);
+                setDeletingVehicle(null);
+            } catch {
+                // Error is handled in the hook with toast
+            }
         }
     };
 

@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Expense } from "@/types";
-import { getItems, setItems, STORAGE_KEYS } from "@/lib/localStorage";
-import { v4 as uuidv4 } from "uuid";
 
 interface ExpenseState {
     items: Expense[];
@@ -17,20 +15,12 @@ const expenseSlice = createSlice({
     name: "expenses",
     initialState,
     reducers: {
-        loadExpenses: (state) => {
-            state.items = getItems<Expense>(STORAGE_KEYS.EXPENSES);
+        setExpenses: (state, action: PayloadAction<Expense[]>) => {
+            state.items = action.payload;
             state.loading = false;
         },
-        addExpense: (state, action: PayloadAction<Omit<Expense, "id" | "createdAt" | "updatedAt">>) => {
-            const now = new Date().toISOString();
-            const expense: Expense = {
-                ...action.payload,
-                id: uuidv4(),
-                createdAt: now,
-                updatedAt: now,
-            };
-            state.items.push(expense);
-            setItems(STORAGE_KEYS.EXPENSES, state.items);
+        addExpense: (state, action: PayloadAction<Expense>) => {
+            state.items.push(action.payload);
         },
         updateExpense: (state, action: PayloadAction<{ id: string; updates: Partial<Expense> }>) => {
             const index = state.items.findIndex((e) => e.id === action.payload.id);
@@ -38,17 +28,17 @@ const expenseSlice = createSlice({
                 state.items[index] = {
                     ...state.items[index],
                     ...action.payload.updates,
-                    updatedAt: new Date().toISOString(),
                 };
-                setItems(STORAGE_KEYS.EXPENSES, state.items);
             }
         },
         deleteExpense: (state, action: PayloadAction<string>) => {
             state.items = state.items.filter((e) => e.id !== action.payload);
-            setItems(STORAGE_KEYS.EXPENSES, state.items);
+        },
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
         },
     },
 });
 
-export const { loadExpenses, addExpense, updateExpense, deleteExpense } = expenseSlice.actions;
+export const { setExpenses, addExpense, updateExpense, deleteExpense, setLoading } = expenseSlice.actions;
 export default expenseSlice.reducer;

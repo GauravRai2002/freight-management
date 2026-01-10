@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { OrgSwitcher } from "@/components/auth/OrgSwitcher";
 import {
     LayoutDashboard,
     Truck,
@@ -83,14 +84,9 @@ export function AppSidebar() {
 
     return (
         <div className="flex h-screen w-64 flex-col border-r bg-sidebar">
-            {/* Header */}
-            <div className="flex h-16 items-center border-b px-6">
-                <Link href="/" className="flex items-center gap-2">
-                    <Truck className="h-6 w-6 text-primary" />
-                    <span className="text-lg font-semibold text-sidebar-foreground">
-                        FleetTracker
-                    </span>
-                </Link>
+            {/* Header with Org Switcher */}
+            <div className="flex h-16 items-center border-b px-3">
+                <OrgSwitcher />
             </div>
 
             {/* Navigation */}

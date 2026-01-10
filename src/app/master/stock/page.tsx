@@ -9,14 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadStockItems, addStockItem, updateStockItem, deleteStockItem } from "@/store/slices/stockItemSlice";
+import { useStockItems } from "@/hooks";
 import { StockItem } from "@/types";
 import { Plus, Pencil, Trash2, Package, Search } from "lucide-react";
 
 export default function StockItemsPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.stockItems);
+    const { stockItems: items, loading, fetchStockItems, createStockItem, editStockItem, removeStockItem } = useStockItems();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -25,7 +23,7 @@ export default function StockItemsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [formData, setFormData] = useState({ name: "", openQty: 0 });
 
-    useEffect(() => { dispatch(loadStockItems()); }, [dispatch]);
+    useEffect(() => { fetchStockItems(); }, [fetchStockItems]);
 
     const filteredItems = items.filter((i) => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -35,15 +33,17 @@ export default function StockItemsPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) dispatch(updateStockItem({ id: editingItem.id, updates: formData }));
-        else dispatch(addStockItem(formData));
-        setIsDialogOpen(false);
+        try {
+            if (editingItem) await editStockItem(editingItem.id, formData);
+            else await createStockItem(formData);
+            setIsDialogOpen(false);
+        } catch { }
     };
 
-    const handleDelete = () => {
-        if (deletingItem) { dispatch(deleteStockItem(deletingItem.id)); setIsDeleteDialogOpen(false); }
+    const handleDelete = async () => {
+        if (deletingItem) { try { await removeStockItem(deletingItem.id); setIsDeleteDialogOpen(false); } catch { } }
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><div className="text-muted-foreground">Loading...</div></div>;

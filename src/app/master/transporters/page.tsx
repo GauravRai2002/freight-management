@@ -16,17 +16,13 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-    loadTransporters, addTransporter, updateTransporter, deleteTransporter,
-} from "@/store/slices/transporterSlice";
+import { useTransporters } from "@/hooks";
 import { Transporter } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Truck, Search } from "lucide-react";
 
 export default function TransportersPage() {
-    const dispatch = useAppDispatch();
-    const { items: transporters, loading } = useAppSelector((state) => state.transporters);
+    const { transporters, loading, fetchTransporters, createTransporter, editTransporter, removeTransporter } = useTransporters();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -38,7 +34,7 @@ export default function TransportersPage() {
         vehNo: "", name: "", drCr: "" as "Dr" | "Cr" | "", openBal: 0, remark: "",
     });
 
-    useEffect(() => { dispatch(loadTransporters()); }, [dispatch]);
+    useEffect(() => { fetchTransporters(); }, [fetchTransporters]);
 
     const filteredItems = transporters.filter(
         (t) => t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -56,22 +52,26 @@ export default function TransportersPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) {
-            dispatch(updateTransporter({ id: editingItem.id, updates: formData }));
-        } else {
-            dispatch(addTransporter(formData));
-        }
-        setIsDialogOpen(false);
-        setEditingItem(null);
+        try {
+            if (editingItem) {
+                await editTransporter(editingItem.id, formData);
+            } else {
+                await createTransporter(formData);
+            }
+            setIsDialogOpen(false);
+            setEditingItem(null);
+        } catch { }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (deletingItem) {
-            dispatch(deleteTransporter(deletingItem.id));
-            setIsDeleteDialogOpen(false);
-            setDeletingItem(null);
+            try {
+                await removeTransporter(deletingItem.id);
+                setIsDeleteDialogOpen(false);
+                setDeletingItem(null);
+            } catch { }
         }
     };
 

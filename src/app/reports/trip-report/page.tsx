@@ -8,18 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadTrips } from "@/store/slices/tripSlice";
-import { loadVehicles } from "@/store/slices/vehicleSlice";
-import { loadDrivers } from "@/store/slices/driverSlice";
+import { useTrips, useVehicles, useDrivers } from "@/hooks";
 import { formatCurrency, formatDate, toISODateString } from "@/lib/utils";
 import { BarChart3, Filter, Download, TrendingUp, TrendingDown, DollarSign, Map } from "lucide-react";
 
 export default function TripReportPage() {
-    const dispatch = useAppDispatch();
-    const { items: trips, loading } = useAppSelector((state) => state.trips);
-    const { items: vehicles } = useAppSelector((state) => state.vehicles);
-    const { items: drivers } = useAppSelector((state) => state.drivers);
+    const { trips, loading, fetchTrips } = useTrips();
+    const { vehicles, fetchVehicles } = useVehicles();
+    const { drivers, fetchDrivers } = useDrivers();
 
     const [filters, setFilters] = useState({
         fromDate: "",
@@ -29,10 +25,10 @@ export default function TripReportPage() {
     });
 
     useEffect(() => {
-        dispatch(loadTrips());
-        dispatch(loadVehicles());
-        dispatch(loadDrivers());
-    }, [dispatch]);
+        fetchTrips();
+        fetchVehicles();
+        fetchDrivers();
+    }, [fetchTrips, fetchVehicles, fetchDrivers]);
 
     // Filter trips
     const filteredTrips = trips.filter((trip) => {

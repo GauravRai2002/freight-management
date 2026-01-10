@@ -9,14 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadPaymentModes, addPaymentMode, updatePaymentMode, deletePaymentMode } from "@/store/slices/paymentModeSlice";
+import { usePaymentModes } from "@/hooks";
 import { PaymentMode } from "@/types";
 import { Plus, Pencil, Trash2, CreditCard, Search } from "lucide-react";
 
 export default function PaymentModesPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.paymentModes);
+    const { paymentModes: items, loading, fetchPaymentModes, createPaymentMode, editPaymentMode, removePaymentMode } = usePaymentModes();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -25,7 +23,7 @@ export default function PaymentModesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [formData, setFormData] = useState({ name: "" });
 
-    useEffect(() => { dispatch(loadPaymentModes()); }, [dispatch]);
+    useEffect(() => { fetchPaymentModes(); }, [fetchPaymentModes]);
 
     const filteredItems = items.filter((i) => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -35,15 +33,17 @@ export default function PaymentModesPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) dispatch(updatePaymentMode({ id: editingItem.id, updates: formData }));
-        else dispatch(addPaymentMode(formData));
-        setIsDialogOpen(false);
+        try {
+            if (editingItem) await editPaymentMode(editingItem.id, formData);
+            else await createPaymentMode(formData);
+            setIsDialogOpen(false);
+        } catch { }
     };
 
-    const handleDelete = () => {
-        if (deletingItem) { dispatch(deletePaymentMode(deletingItem.id)); setIsDeleteDialogOpen(false); }
+    const handleDelete = async () => {
+        if (deletingItem) { try { await removePaymentMode(deletingItem.id); setIsDeleteDialogOpen(false); } catch { } }
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><div className="text-muted-foreground">Loading...</div></div>;

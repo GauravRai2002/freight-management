@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { PartyPayment } from "@/types";
-import { getItems, setItems, STORAGE_KEYS } from "@/lib/localStorage";
-import { v4 as uuidv4 } from "uuid";
 
 interface PartyPaymentState {
     items: PartyPayment[];
@@ -17,20 +15,12 @@ const partyPaymentSlice = createSlice({
     name: "partyPayments",
     initialState,
     reducers: {
-        loadPartyPayments: (state) => {
-            state.items = getItems<PartyPayment>(STORAGE_KEYS.PARTY_PAYMENTS);
+        setPartyPayments: (state, action: PayloadAction<PartyPayment[]>) => {
+            state.items = action.payload;
             state.loading = false;
         },
-        addPartyPayment: (state, action: PayloadAction<Omit<PartyPayment, "id" | "createdAt" | "updatedAt">>) => {
-            const now = new Date().toISOString();
-            const payment: PartyPayment = {
-                ...action.payload,
-                id: uuidv4(),
-                createdAt: now,
-                updatedAt: now,
-            };
-            state.items.push(payment);
-            setItems(STORAGE_KEYS.PARTY_PAYMENTS, state.items);
+        addPartyPayment: (state, action: PayloadAction<PartyPayment>) => {
+            state.items.push(action.payload);
         },
         updatePartyPayment: (state, action: PayloadAction<{ id: string; updates: Partial<PartyPayment> }>) => {
             const index = state.items.findIndex((p) => p.id === action.payload.id);
@@ -38,17 +28,17 @@ const partyPaymentSlice = createSlice({
                 state.items[index] = {
                     ...state.items[index],
                     ...action.payload.updates,
-                    updatedAt: new Date().toISOString(),
                 };
-                setItems(STORAGE_KEYS.PARTY_PAYMENTS, state.items);
             }
         },
         deletePartyPayment: (state, action: PayloadAction<string>) => {
             state.items = state.items.filter((p) => p.id !== action.payload);
-            setItems(STORAGE_KEYS.PARTY_PAYMENTS, state.items);
+        },
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
         },
     },
 });
 
-export const { loadPartyPayments, addPartyPayment, updatePartyPayment, deletePartyPayment } = partyPaymentSlice.actions;
+export const { setPartyPayments, addPartyPayment, updatePartyPayment, deletePartyPayment, setLoading } = partyPaymentSlice.actions;
 export default partyPaymentSlice.reducer;

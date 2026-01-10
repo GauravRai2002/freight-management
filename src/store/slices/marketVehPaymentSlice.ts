@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { MarketVehPayment } from "@/types";
-import { getItems, setItems, STORAGE_KEYS } from "@/lib/localStorage";
-import { v4 as uuidv4 } from "uuid";
 
 interface MarketVehPaymentState {
     items: MarketVehPayment[];
@@ -17,20 +15,12 @@ const marketVehPaymentSlice = createSlice({
     name: "marketVehPayments",
     initialState,
     reducers: {
-        loadMarketVehPayments: (state) => {
-            state.items = getItems<MarketVehPayment>(STORAGE_KEYS.MARKET_VEH_PAYMENTS);
+        setMarketVehPayments: (state, action: PayloadAction<MarketVehPayment[]>) => {
+            state.items = action.payload;
             state.loading = false;
         },
-        addMarketVehPayment: (state, action: PayloadAction<Omit<MarketVehPayment, "id" | "createdAt" | "updatedAt">>) => {
-            const now = new Date().toISOString();
-            const payment: MarketVehPayment = {
-                ...action.payload,
-                id: uuidv4(),
-                createdAt: now,
-                updatedAt: now,
-            };
-            state.items.push(payment);
-            setItems(STORAGE_KEYS.MARKET_VEH_PAYMENTS, state.items);
+        addMarketVehPayment: (state, action: PayloadAction<MarketVehPayment>) => {
+            state.items.push(action.payload);
         },
         updateMarketVehPayment: (state, action: PayloadAction<{ id: string; updates: Partial<MarketVehPayment> }>) => {
             const index = state.items.findIndex((p) => p.id === action.payload.id);
@@ -38,17 +28,17 @@ const marketVehPaymentSlice = createSlice({
                 state.items[index] = {
                     ...state.items[index],
                     ...action.payload.updates,
-                    updatedAt: new Date().toISOString(),
                 };
-                setItems(STORAGE_KEYS.MARKET_VEH_PAYMENTS, state.items);
             }
         },
         deleteMarketVehPayment: (state, action: PayloadAction<string>) => {
             state.items = state.items.filter((p) => p.id !== action.payload);
-            setItems(STORAGE_KEYS.MARKET_VEH_PAYMENTS, state.items);
+        },
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
         },
     },
 });
 
-export const { loadMarketVehPayments, addMarketVehPayment, updateMarketVehPayment, deleteMarketVehPayment } = marketVehPaymentSlice.actions;
+export const { setMarketVehPayments, addMarketVehPayment, updateMarketVehPayment, deleteMarketVehPayment, setLoading } = marketVehPaymentSlice.actions;
 export default marketVehPaymentSlice.reducer;

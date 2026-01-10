@@ -30,20 +30,13 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-    loadDrivers,
-    addDriver,
-    updateDriver,
-    deleteDriver,
-} from "@/store/slices/driverSlice";
+import { useDrivers } from "@/hooks";
 import { Driver } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Users, Search } from "lucide-react";
 
 export default function DriversPage() {
-    const dispatch = useAppDispatch();
-    const { items: drivers, loading } = useAppSelector((state) => state.drivers);
+    const { drivers, loading, fetchDrivers, createDriver, editDriver, removeDriver } = useDrivers();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -60,8 +53,8 @@ export default function DriversPage() {
     });
 
     useEffect(() => {
-        dispatch(loadDrivers());
-    }, [dispatch]);
+        fetchDrivers();
+    }, [fetchDrivers]);
 
     const filteredDrivers = drivers.filter(
         (d) =>
@@ -86,30 +79,33 @@ export default function DriversPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (editingDriver) {
-            dispatch(
-                updateDriver({
-                    id: editingDriver.id,
-                    updates: formData,
-                })
-            );
-        } else {
-            dispatch(addDriver(formData));
-        }
+        try {
+            if (editingDriver) {
+                await editDriver(editingDriver.id, formData);
+            } else {
+                await createDriver(formData);
+            }
 
-        setIsDialogOpen(false);
-        setFormData({ name: "", contactNo: "", drCr: "", openBal: 0, remark: "" });
-        setEditingDriver(null);
+            setIsDialogOpen(false);
+            setFormData({ name: "", contactNo: "", drCr: "", openBal: 0, remark: "" });
+            setEditingDriver(null);
+        } catch {
+            // Error handled in hook
+        }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (deletingDriver) {
-            dispatch(deleteDriver(deletingDriver.id));
-            setIsDeleteDialogOpen(false);
-            setDeletingDriver(null);
+            try {
+                await removeDriver(deletingDriver.id);
+                setIsDeleteDialogOpen(false);
+                setDeletingDriver(null);
+            } catch {
+                // Error handled in hook
+            }
         }
     };
 

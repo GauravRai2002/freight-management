@@ -3,13 +3,7 @@
 import { useEffect } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadVehicles } from "@/store/slices/vehicleSlice";
-import { loadDrivers } from "@/store/slices/driverSlice";
-import { loadBillingParties } from "@/store/slices/billingPartySlice";
-import { loadTransporters } from "@/store/slices/transporterSlice";
-import { loadTrips } from "@/store/slices/tripSlice";
-import { loadTripBooks } from "@/store/slices/tripBookSlice";
+import { useVehicles, useDrivers, useBillingParties, useTransporters, useTrips, useTripBooks } from "@/hooks";
 import { formatCurrency } from "@/lib/utils";
 import {
   Truck,
@@ -23,22 +17,21 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const dispatch = useAppDispatch();
-  const vehicles = useAppSelector((state) => state.vehicles.items);
-  const drivers = useAppSelector((state) => state.drivers.items);
-  const billingParties = useAppSelector((state) => state.billingParties.items);
-  const transporters = useAppSelector((state) => state.transporters.items);
-  const trips = useAppSelector((state) => state.trips.items);
-  const tripBooks = useAppSelector((state) => state.tripBooks.items);
+  const { vehicles, fetchVehicles } = useVehicles();
+  const { drivers, fetchDrivers } = useDrivers();
+  const { billingParties, fetchBillingParties } = useBillingParties();
+  const { transporters, fetchTransporters } = useTransporters();
+  const { trips, fetchTrips } = useTrips();
+  const { tripBooks, fetchTripBooks } = useTripBooks();
 
   useEffect(() => {
-    dispatch(loadVehicles());
-    dispatch(loadDrivers());
-    dispatch(loadBillingParties());
-    dispatch(loadTransporters());
-    dispatch(loadTrips());
-    dispatch(loadTripBooks());
-  }, [dispatch]);
+    fetchVehicles();
+    fetchDrivers();
+    fetchBillingParties();
+    fetchTransporters();
+    fetchTrips();
+    fetchTripBooks();
+  }, [fetchVehicles, fetchDrivers, fetchBillingParties, fetchTransporters, fetchTrips, fetchTripBooks]);
 
   // Calculate totals
   const totalRevenue = tripBooks.reduce((sum, tb) => sum + (tb.tripAmount || 0), 0);

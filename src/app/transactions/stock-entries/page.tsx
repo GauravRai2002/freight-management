@@ -10,17 +10,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadStockEntries, addStockEntry, deleteStockEntry } from "@/store/slices/stockEntrySlice";
-import { loadStockItems, updateStockItem } from "@/store/slices/stockItemSlice";
+import { useStockEntries, useStockItems } from "@/hooks";
 import { StockEntry } from "@/types";
 import { formatDate, toISODateString } from "@/lib/utils";
 import { Plus, Trash2, PackageOpen, Search, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 
 export default function StockEntriesPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.stockEntries);
-    const { items: stockItems } = useAppSelector((state) => state.stockItems);
+    const { stockEntries: items, loading, fetchStockEntries, createStockEntry, removeStockEntry } = useStockEntries();
+    const { stockItems, fetchStockItems, editStockItem } = useStockItems();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -37,9 +34,9 @@ export default function StockEntriesPage() {
     });
 
     useEffect(() => {
-        dispatch(loadStockEntries());
-        dispatch(loadStockItems());
-    }, [dispatch]);
+        fetchStockEntries();
+        fetchStockItems();
+    }, [fetchStockEntries, fetchStockItems]);
 
     const filteredItems = items.filter((i) =>
         i.stockItemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,63 +48,55 @@ export default function StockEntriesPage() {
         setFormData({ ...formData, stockItemId, stockItemName: item?.name || "" });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Add the stock entry
-        dispatch(addStockEntry(formData));
+        try {
+            // Add the stock entry
+            await createStockEntry(formData);
 
-        // Update the stock item quantities
-        const stockItem = stockItems.find((i) => i.id === formData.stockItemId);
-        if (stockItem) {
-            if (formData.entryType === "IN") {
-                dispatch(updateStockItem({
-                    id: stockItem.id,
-                    updates: {
+            // Update the stock item quantities
+            const stockItem = stockItems.find((i) => i.id === formData.stockItemId);
+            if (stockItem) {
+                if (formData.entryType === "IN") {
+                    await editStockItem(stockItem.id, {
                         stkIn: stockItem.stkIn + formData.quantity,
                         closeQty: stockItem.closeQty + formData.quantity,
-                    },
-                }));
-            } else {
-                dispatch(updateStockItem({
-                    id: stockItem.id,
-                    updates: {
+                    });
+                } else {
+                    await editStockItem(stockItem.id, {
                         stkOut: stockItem.stkOut + formData.quantity,
                         closeQty: stockItem.closeQty - formData.quantity,
-                    },
-                }));
-            }
-        }
-
-        setIsDialogOpen(false);
-        setFormData({ date: toISODateString(new Date()), stockItemId: "", stockItemName: "", entryType: "IN", quantity: 0, remark: "" });
-    };
-
-    const handleDelete = () => {
-        if (deletingItem) {
-            // Reverse the stock update
-            const stockItem = stockItems.find((i) => i.id === deletingItem.stockItemId);
-            if (stockItem) {
-                if (deletingItem.entryType === "IN") {
-                    dispatch(updateStockItem({
-                        id: stockItem.id,
-                        updates: {
-                            stkIn: stockItem.stkIn - deletingItem.quantity,
-                            closeQty: stockItem.closeQty - deletingItem.quantity,
-                        },
-                    }));
-                } else {
-                    dispatch(updateStockItem({
-                        id: stockItem.id,
-                        updates: {
-                            stkOut: stockItem.stkOut - deletingItem.quantity,
-                            closeQty: stockItem.closeQty + deletingItem.quantity,
-                        },
-                    }));
+                    });
                 }
             }
-            dispatch(deleteStockEntry(deletingItem.id));
-            setIsDeleteDialogOpen(false);
+
+            setIsDialogOpen(false);
+            setFormData({ date: toISODateString(new Date()), stockItemId: "", stockItemName: "", entryType: "IN", quantity: 0, remark: "" });
+        } catch { }
+    };
+
+    const handleDelete = async () => {
+        if (deletingItem) {
+            try {
+                // Reverse the stock update
+                const stockItem = stockItems.find((i) => i.id === deletingItem.stockItemId);
+                if (stockItem) {
+                    if (deletingItem.entryType === "IN") {
+                        await editStockItem(stockItem.id, {
+                            stkIn: stockItem.stkIn - deletingItem.quantity,
+                            closeQty: stockItem.closeQty - deletingItem.quantity,
+                        });
+                    } else {
+                        await editStockItem(stockItem.id, {
+                            stkOut: stockItem.stkOut - deletingItem.quantity,
+                            closeQty: stockItem.closeQty + deletingItem.quantity,
+                        });
+                    }
+                }
+                await removeStockEntry(deletingItem.id);
+                setIsDeleteDialogOpen(false);
+            } catch { }
         }
     };
 

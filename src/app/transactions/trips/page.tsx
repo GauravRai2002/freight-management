@@ -11,19 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadTrips, addTrip, updateTrip, deleteTrip } from "@/store/slices/tripSlice";
-import { loadVehicles } from "@/store/slices/vehicleSlice";
-import { loadDrivers } from "@/store/slices/driverSlice";
+import { useTrips, useVehicles, useDrivers } from "@/hooks";
 import { Trip } from "@/types";
 import { formatCurrency, formatDate, toISODateString } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Map, Search, Lock, Unlock } from "lucide-react";
 
 export default function TripsPage() {
-    const dispatch = useAppDispatch();
-    const { items: trips, loading } = useAppSelector((state) => state.trips);
-    const { items: vehicles } = useAppSelector((state) => state.vehicles);
-    const { items: drivers } = useAppSelector((state) => state.drivers);
+    const { trips, loading, fetchTrips, createTrip, editTrip, removeTrip } = useTrips();
+    const { vehicles, fetchVehicles } = useVehicles();
+    const { drivers, fetchDrivers } = useDrivers();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -58,10 +54,10 @@ export default function TripsPage() {
     const [formData, setFormData] = useState(defaultFormData);
 
     useEffect(() => {
-        dispatch(loadTrips());
-        dispatch(loadVehicles());
-        dispatch(loadDrivers());
-    }, [dispatch]);
+        fetchTrips();
+        fetchVehicles();
+        fetchDrivers();
+    }, [fetchTrips, fetchVehicles, fetchDrivers]);
 
     const filteredItems = trips.filter(
         (t) =>
@@ -120,22 +116,26 @@ export default function TripsPage() {
         }));
     }, [formData.tripFare, formData.rtFare, formData.tripExpense, formData.stMiter, formData.endMiter, formData.ltr]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) {
-            dispatch(updateTrip({ id: editingItem.id, updates: formData }));
-        } else {
-            dispatch(addTrip(formData));
-        }
-        setIsDialogOpen(false);
-        setEditingItem(null);
+        try {
+            if (editingItem) {
+                await editTrip(editingItem.id, formData);
+            } else {
+                await createTrip(formData);
+            }
+            setIsDialogOpen(false);
+            setEditingItem(null);
+        } catch { }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (deletingItem) {
-            dispatch(deleteTrip(deletingItem.id));
-            setIsDeleteDialogOpen(false);
-            setDeletingItem(null);
+            try {
+                await removeTrip(deletingItem.id);
+                setIsDeleteDialogOpen(false);
+                setDeletingItem(null);
+            } catch { }
         }
     };
 

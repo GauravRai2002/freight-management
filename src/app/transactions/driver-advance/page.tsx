@@ -10,19 +10,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadDriverAdvances, addDriverAdvance, updateDriverAdvance, deleteDriverAdvance } from "@/store/slices/driverAdvanceSlice";
-import { loadDrivers } from "@/store/slices/driverSlice";
-import { loadPaymentModes } from "@/store/slices/paymentModeSlice";
+import { useDriverAdvances, useDrivers, usePaymentModes } from "@/hooks";
 import { DriverAdvance } from "@/types";
 import { formatCurrency, formatDate, toISODateString } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Wallet, Search } from "lucide-react";
 
 export default function DriverAdvancePage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.driverAdvances);
-    const { items: drivers } = useAppSelector((state) => state.drivers);
-    const { items: paymentModes } = useAppSelector((state) => state.paymentModes);
+    const { driverAdvances: items, loading, fetchDriverAdvances, createDriverAdvance, editDriverAdvance, removeDriverAdvance } = useDriverAdvances();
+    const { drivers, fetchDrivers } = useDrivers();
+    const { paymentModes, fetchPaymentModes } = usePaymentModes();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -37,10 +33,10 @@ export default function DriverAdvancePage() {
     const [formData, setFormData] = useState(defaultFormData);
 
     useEffect(() => {
-        dispatch(loadDriverAdvances());
-        dispatch(loadDrivers());
-        dispatch(loadPaymentModes());
-    }, [dispatch]);
+        fetchDriverAdvances();
+        fetchDrivers();
+        fetchPaymentModes();
+    }, [fetchDriverAdvances, fetchDrivers, fetchPaymentModes]);
 
     const filteredItems = items.filter((i) =>
         i.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,15 +58,17 @@ export default function DriverAdvancePage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) dispatch(updateDriverAdvance({ id: editingItem.id, updates: formData }));
-        else dispatch(addDriverAdvance(formData));
-        setIsDialogOpen(false);
+        try {
+            if (editingItem) await editDriverAdvance(editingItem.id, formData);
+            else await createDriverAdvance(formData);
+            setIsDialogOpen(false);
+        } catch { }
     };
 
-    const handleDelete = () => {
-        if (deletingItem) { dispatch(deleteDriverAdvance(deletingItem.id)); setIsDeleteDialogOpen(false); }
+    const handleDelete = async () => {
+        if (deletingItem) { try { await removeDriverAdvance(deletingItem.id); setIsDeleteDialogOpen(false); } catch { } }
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><div className="text-muted-foreground">Loading...</div></div>;

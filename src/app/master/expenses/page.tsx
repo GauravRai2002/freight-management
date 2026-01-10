@@ -10,16 +10,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadExpenseCategories, addExpenseCategory, updateExpenseCategory, deleteExpenseCategory } from "@/store/slices/expenseCategorySlice";
+import { useExpenseCategories } from "@/hooks";
 import { ExpenseCategory } from "@/types";
 import { Plus, Pencil, Trash2, Receipt, Search } from "lucide-react";
 
 const EXPENSE_MODES = ["General", "Expenses", "Fuel"] as const;
 
 export default function ExpenseCategoriesPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.expenseCategories);
+    const { expenseCategories: items, loading, fetchExpenseCategories, createExpenseCategory, editExpenseCategory, removeExpenseCategory } = useExpenseCategories();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -29,7 +27,7 @@ export default function ExpenseCategoriesPage() {
 
     const [formData, setFormData] = useState({ name: "", mode: "General" as "General" | "Expenses" | "Fuel" });
 
-    useEffect(() => { dispatch(loadExpenseCategories()); }, [dispatch]);
+    useEffect(() => { fetchExpenseCategories(); }, [fetchExpenseCategories]);
 
     const filteredItems = items.filter((i) => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -44,20 +42,24 @@ export default function ExpenseCategoriesPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) {
-            dispatch(updateExpenseCategory({ id: editingItem.id, updates: formData }));
-        } else {
-            dispatch(addExpenseCategory(formData));
-        }
-        setIsDialogOpen(false);
+        try {
+            if (editingItem) {
+                await editExpenseCategory(editingItem.id, formData);
+            } else {
+                await createExpenseCategory(formData);
+            }
+            setIsDialogOpen(false);
+        } catch { }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (deletingItem) {
-            dispatch(deleteExpenseCategory(deletingItem.id));
-            setIsDeleteDialogOpen(false);
+            try {
+                await removeExpenseCategory(deletingItem.id);
+                setIsDeleteDialogOpen(false);
+            } catch { }
         }
     };
 

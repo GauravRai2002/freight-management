@@ -4,30 +4,24 @@ import { useEffect } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadBillingParties } from "@/store/slices/billingPartySlice";
-import { loadDrivers } from "@/store/slices/driverSlice";
-import { loadTransporters } from "@/store/slices/transporterSlice";
-import { loadTrips } from "@/store/slices/tripSlice";
-import { loadTripBooks } from "@/store/slices/tripBookSlice";
+import { useBillingParties, useDrivers, useTransporters, useTrips, useTripBooks } from "@/hooks";
 import { formatCurrency } from "@/lib/utils";
 import { PieChart, Building2, Users, Truck, TrendingUp, TrendingDown, DollarSign, IndianRupee } from "lucide-react";
 
 export default function BalanceSheetPage() {
-    const dispatch = useAppDispatch();
-    const { items: parties, loading: partiesLoading } = useAppSelector((state) => state.billingParties);
-    const { items: drivers, loading: driversLoading } = useAppSelector((state) => state.drivers);
-    const { items: transporters, loading: transportersLoading } = useAppSelector((state) => state.transporters);
-    const { items: trips } = useAppSelector((state) => state.trips);
-    const { items: tripBooks } = useAppSelector((state) => state.tripBooks);
+    const { billingParties: parties, loading: partiesLoading, fetchBillingParties } = useBillingParties();
+    const { drivers, loading: driversLoading, fetchDrivers } = useDrivers();
+    const { transporters, loading: transportersLoading, fetchTransporters } = useTransporters();
+    const { trips, fetchTrips } = useTrips();
+    const { tripBooks, fetchTripBooks } = useTripBooks();
 
     useEffect(() => {
-        dispatch(loadBillingParties());
-        dispatch(loadDrivers());
-        dispatch(loadTransporters());
-        dispatch(loadTrips());
-        dispatch(loadTripBooks());
-    }, [dispatch]);
+        fetchBillingParties();
+        fetchDrivers();
+        fetchTransporters();
+        fetchTrips();
+        fetchTripBooks();
+    }, [fetchBillingParties, fetchDrivers, fetchTransporters, fetchTrips, fetchTripBooks]);
 
     // Calculate summaries
     const partySummary = {

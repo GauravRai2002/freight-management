@@ -10,21 +10,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadExpenses, addExpense, deleteExpense } from "@/store/slices/expenseSlice";
-import { loadExpenseCategories } from "@/store/slices/expenseCategorySlice";
-import { loadPaymentModes } from "@/store/slices/paymentModeSlice";
-import { loadVehicles } from "@/store/slices/vehicleSlice";
+import { useExpenses, useExpenseCategories, usePaymentModes, useVehicles } from "@/hooks";
 import { Expense } from "@/types";
 import { formatCurrency, formatDate, toISODateString } from "@/lib/utils";
 import { Plus, Trash2, FileText, Search } from "lucide-react";
 
 export default function ExpenseBookPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.expenses);
-    const { items: categories } = useAppSelector((state) => state.expenseCategories);
-    const { items: paymentModes } = useAppSelector((state) => state.paymentModes);
-    const { items: vehicles } = useAppSelector((state) => state.vehicles);
+    const { expenses: items, loading, fetchExpenses, createExpense, removeExpense } = useExpenses();
+    const { expenseCategories: categories, fetchExpenseCategories } = useExpenseCategories();
+    const { paymentModes, fetchPaymentModes } = usePaymentModes();
+    const { vehicles, fetchVehicles } = useVehicles();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -37,26 +32,28 @@ export default function ExpenseBookPage() {
     });
 
     useEffect(() => {
-        dispatch(loadExpenses());
-        dispatch(loadExpenseCategories());
-        dispatch(loadPaymentModes());
-        dispatch(loadVehicles());
-    }, [dispatch]);
+        fetchExpenses();
+        fetchExpenseCategories();
+        fetchPaymentModes();
+        fetchVehicles();
+    }, [fetchExpenses, fetchExpenseCategories, fetchPaymentModes, fetchVehicles]);
 
     const filteredItems = items.filter((i) =>
         i.expenseType.toLowerCase().includes(searchQuery.toLowerCase()) ||
         i.tripNo.toString().includes(searchQuery)
     );
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        dispatch(addExpense(formData));
-        setIsDialogOpen(false);
-        setFormData({ tripNo: 0, date: toISODateString(new Date()), expenseType: "", amount: 0, fromAccount: "", refVehNo: "", remark1: "", remark2: "", isNonTripExp: false });
+        try {
+            await createExpense(formData);
+            setIsDialogOpen(false);
+            setFormData({ tripNo: 0, date: toISODateString(new Date()), expenseType: "", amount: 0, fromAccount: "", refVehNo: "", remark1: "", remark2: "", isNonTripExp: false });
+        } catch { }
     };
 
-    const handleDelete = () => {
-        if (deletingItem) { dispatch(deleteExpense(deletingItem.id)); setIsDeleteDialogOpen(false); }
+    const handleDelete = async () => {
+        if (deletingItem) { try { await removeExpense(deletingItem.id); setIsDeleteDialogOpen(false); } catch { } }
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><div className="text-muted-foreground">Loading...</div></div>;

@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { StockEntry } from "@/types";
-import { getItems, setItems, STORAGE_KEYS } from "@/lib/localStorage";
-import { v4 as uuidv4 } from "uuid";
 
 interface StockEntryState {
     items: StockEntry[];
@@ -17,20 +15,12 @@ const stockEntrySlice = createSlice({
     name: "stockEntries",
     initialState,
     reducers: {
-        loadStockEntries: (state) => {
-            state.items = getItems<StockEntry>(STORAGE_KEYS.STOCK_ENTRIES);
+        setStockEntries: (state, action: PayloadAction<StockEntry[]>) => {
+            state.items = action.payload;
             state.loading = false;
         },
-        addStockEntry: (state, action: PayloadAction<Omit<StockEntry, "id" | "createdAt" | "updatedAt">>) => {
-            const now = new Date().toISOString();
-            const entry: StockEntry = {
-                ...action.payload,
-                id: uuidv4(),
-                createdAt: now,
-                updatedAt: now,
-            };
-            state.items.push(entry);
-            setItems(STORAGE_KEYS.STOCK_ENTRIES, state.items);
+        addStockEntry: (state, action: PayloadAction<StockEntry>) => {
+            state.items.push(action.payload);
         },
         updateStockEntry: (state, action: PayloadAction<{ id: string; updates: Partial<StockEntry> }>) => {
             const index = state.items.findIndex((e) => e.id === action.payload.id);
@@ -38,17 +28,17 @@ const stockEntrySlice = createSlice({
                 state.items[index] = {
                     ...state.items[index],
                     ...action.payload.updates,
-                    updatedAt: new Date().toISOString(),
                 };
-                setItems(STORAGE_KEYS.STOCK_ENTRIES, state.items);
             }
         },
         deleteStockEntry: (state, action: PayloadAction<string>) => {
             state.items = state.items.filter((e) => e.id !== action.payload);
-            setItems(STORAGE_KEYS.STOCK_ENTRIES, state.items);
+        },
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
         },
     },
 });
 
-export const { loadStockEntries, addStockEntry, updateStockEntry, deleteStockEntry } = stockEntrySlice.actions;
+export const { setStockEntries, addStockEntry, updateStockEntry, deleteStockEntry, setLoading } = stockEntrySlice.actions;
 export default stockEntrySlice.reducer;

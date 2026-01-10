@@ -10,19 +10,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadMarketVehPayments, addMarketVehPayment, updateMarketVehPayment, deleteMarketVehPayment } from "@/store/slices/marketVehPaymentSlice";
-import { loadTransporters } from "@/store/slices/transporterSlice";
-import { loadPaymentModes } from "@/store/slices/paymentModeSlice";
+import { useMarketVehPayments, useTransporters, usePaymentModes } from "@/hooks";
 import { MarketVehPayment } from "@/types";
 import { formatCurrency, formatDate, toISODateString } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Truck, Search } from "lucide-react";
 
 export default function MarketVehPaymentsPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.marketVehPayments);
-    const { items: transporters } = useAppSelector((state) => state.transporters);
-    const { items: paymentModes } = useAppSelector((state) => state.paymentModes);
+    const { marketVehPayments: items, loading, fetchMarketVehPayments, createMarketVehPayment, editMarketVehPayment, removeMarketVehPayment } = useMarketVehPayments();
+    const { transporters, fetchTransporters } = useTransporters();
+    const { paymentModes, fetchPaymentModes } = usePaymentModes();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -37,10 +33,10 @@ export default function MarketVehPaymentsPage() {
     const [formData, setFormData] = useState(defaultFormData);
 
     useEffect(() => {
-        dispatch(loadMarketVehPayments());
-        dispatch(loadTransporters());
-        dispatch(loadPaymentModes());
-    }, [dispatch]);
+        fetchMarketVehPayments();
+        fetchTransporters();
+        fetchPaymentModes();
+    }, [fetchMarketVehPayments, fetchTransporters, fetchPaymentModes]);
 
     const filteredItems = items.filter((i) =>
         i.transporterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -68,16 +64,18 @@ export default function MarketVehPaymentsPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) dispatch(updateMarketVehPayment({ id: editingItem.id, updates: formData }));
-        else dispatch(addMarketVehPayment(formData));
-        setIsDialogOpen(false);
-        setEditingItem(null);
+        try {
+            if (editingItem) await editMarketVehPayment(editingItem.id, formData);
+            else await createMarketVehPayment(formData);
+            setIsDialogOpen(false);
+            setEditingItem(null);
+        } catch { }
     };
 
-    const handleDelete = () => {
-        if (deletingItem) { dispatch(deleteMarketVehPayment(deletingItem.id)); setIsDeleteDialogOpen(false); }
+    const handleDelete = async () => {
+        if (deletingItem) { try { await removeMarketVehPayment(deletingItem.id); setIsDeleteDialogOpen(false); } catch { } }
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><div className="text-muted-foreground">Loading...</div></div>;

@@ -30,20 +30,13 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-    loadBillingParties,
-    addBillingParty,
-    updateBillingParty,
-    deleteBillingParty,
-} from "@/store/slices/billingPartySlice";
+import { useBillingParties } from "@/hooks";
 import { BillingParty } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Building2, Search } from "lucide-react";
 
 export default function PartiesPage() {
-    const dispatch = useAppDispatch();
-    const { items: parties, loading } = useAppSelector((state) => state.billingParties);
+    const { billingParties: parties, loading, fetchBillingParties, createBillingParty, editBillingParty, removeBillingParty } = useBillingParties();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -60,8 +53,8 @@ export default function PartiesPage() {
     });
 
     useEffect(() => {
-        dispatch(loadBillingParties());
-    }, [dispatch]);
+        fetchBillingParties();
+    }, [fetchBillingParties]);
 
     const filteredParties = parties.filter(
         (p) =>
@@ -86,30 +79,33 @@ export default function PartiesPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (editingParty) {
-            dispatch(
-                updateBillingParty({
-                    id: editingParty.id,
-                    updates: formData,
-                })
-            );
-        } else {
-            dispatch(addBillingParty(formData));
-        }
+        try {
+            if (editingParty) {
+                await editBillingParty(editingParty.id, formData);
+            } else {
+                await createBillingParty(formData);
+            }
 
-        setIsDialogOpen(false);
-        setFormData({ name: "", contactNo: "", drCr: "", openBal: 0, remark: "" });
-        setEditingParty(null);
+            setIsDialogOpen(false);
+            setFormData({ name: "", contactNo: "", drCr: "", openBal: 0, remark: "" });
+            setEditingParty(null);
+        } catch {
+            // Error handled in hook
+        }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (deletingParty) {
-            dispatch(deleteBillingParty(deletingParty.id));
-            setIsDeleteDialogOpen(false);
-            setDeletingParty(null);
+            try {
+                await removeBillingParty(deletingParty.id);
+                setIsDeleteDialogOpen(false);
+                setDeletingParty(null);
+            } catch {
+                // Error handled in hook
+            }
         }
     };
 

@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { PaymentMode } from "@/types";
-import { getItems, setItems, STORAGE_KEYS } from "@/lib/localStorage";
-import { v4 as uuidv4 } from "uuid";
 
 interface PaymentModeState {
     items: PaymentMode[];
@@ -17,31 +15,12 @@ const paymentModeSlice = createSlice({
     name: "paymentModes",
     initialState,
     reducers: {
-        loadPaymentModes: (state) => {
-            state.items = getItems<PaymentMode>(STORAGE_KEYS.PAYMENT_MODES);
-            // Initialize with default payment modes if empty
-            if (state.items.length === 0) {
-                const now = new Date().toISOString();
-                state.items = [
-                    { id: uuidv4(), name: "CASH", createdAt: now, updatedAt: now },
-                    { id: uuidv4(), name: "ONLINE", createdAt: now, updatedAt: now },
-                    { id: uuidv4(), name: "CHEQUE", createdAt: now, updatedAt: now },
-                    { id: uuidv4(), name: "UPI", createdAt: now, updatedAt: now },
-                ];
-                setItems(STORAGE_KEYS.PAYMENT_MODES, state.items);
-            }
+        setPaymentModes: (state, action: PayloadAction<PaymentMode[]>) => {
+            state.items = action.payload;
             state.loading = false;
         },
-        addPaymentMode: (state, action: PayloadAction<Omit<PaymentMode, "id" | "createdAt" | "updatedAt">>) => {
-            const now = new Date().toISOString();
-            const mode: PaymentMode = {
-                ...action.payload,
-                id: uuidv4(),
-                createdAt: now,
-                updatedAt: now,
-            };
-            state.items.push(mode);
-            setItems(STORAGE_KEYS.PAYMENT_MODES, state.items);
+        addPaymentMode: (state, action: PayloadAction<PaymentMode>) => {
+            state.items.push(action.payload);
         },
         updatePaymentMode: (state, action: PayloadAction<{ id: string; updates: Partial<PaymentMode> }>) => {
             const index = state.items.findIndex((m) => m.id === action.payload.id);
@@ -49,17 +28,17 @@ const paymentModeSlice = createSlice({
                 state.items[index] = {
                     ...state.items[index],
                     ...action.payload.updates,
-                    updatedAt: new Date().toISOString(),
                 };
-                setItems(STORAGE_KEYS.PAYMENT_MODES, state.items);
             }
         },
         deletePaymentMode: (state, action: PayloadAction<string>) => {
             state.items = state.items.filter((m) => m.id !== action.payload);
-            setItems(STORAGE_KEYS.PAYMENT_MODES, state.items);
+        },
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
         },
     },
 });
 
-export const { loadPaymentModes, addPaymentMode, updatePaymentMode, deletePaymentMode } = paymentModeSlice.actions;
+export const { setPaymentModes, addPaymentMode, updatePaymentMode, deletePaymentMode, setLoading } = paymentModeSlice.actions;
 export default paymentModeSlice.reducer;

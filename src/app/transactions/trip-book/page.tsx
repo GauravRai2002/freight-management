@@ -11,11 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loadTripBooks, addTripBook, updateTripBook, deleteTripBook } from "@/store/slices/tripBookSlice";
-import { loadTrips } from "@/store/slices/tripSlice";
-import { loadBillingParties } from "@/store/slices/billingPartySlice";
-import { loadTransporters } from "@/store/slices/transporterSlice";
+import { useTripBooks, useTrips, useBillingParties, useTransporters } from "@/hooks";
 import { TripBook } from "@/types";
 import { formatCurrency, formatDate, toISODateString } from "@/lib/utils";
 import { Plus, Pencil, Trash2, BookOpen, Search } from "lucide-react";
@@ -23,11 +19,10 @@ import { Plus, Pencil, Trash2, BookOpen, Search } from "lucide-react";
 const FREIGHT_MODES = ["FIX", "PE Ton", "PE KG"] as const;
 
 export default function TripBookPage() {
-    const dispatch = useAppDispatch();
-    const { items, loading } = useAppSelector((state) => state.tripBooks);
-    const { items: trips } = useAppSelector((state) => state.trips);
-    const { items: parties } = useAppSelector((state) => state.billingParties);
-    const { items: transporters } = useAppSelector((state) => state.transporters);
+    const { tripBooks: items, loading, fetchTripBooks, createTripBook, editTripBook, removeTripBook } = useTripBooks();
+    const { trips, fetchTrips } = useTrips();
+    const { billingParties: parties, fetchBillingParties } = useBillingParties();
+    const { transporters, fetchTransporters } = useTransporters();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -45,11 +40,11 @@ export default function TripBookPage() {
     const [formData, setFormData] = useState(defaultFormData);
 
     useEffect(() => {
-        dispatch(loadTripBooks());
-        dispatch(loadTrips());
-        dispatch(loadBillingParties());
-        dispatch(loadTransporters());
-    }, [dispatch]);
+        fetchTripBooks();
+        fetchTrips();
+        fetchBillingParties();
+        fetchTransporters();
+    }, [fetchTripBooks, fetchTrips, fetchBillingParties, fetchTransporters]);
 
     const filteredItems = items.filter((i) =>
         i.tripNo.toString().includes(searchQuery) ||
@@ -97,16 +92,18 @@ export default function TripBookPage() {
         setFormData({ ...formData, transporterId, transporterName: transporter?.name || "", marketVehNo: transporter?.vehNo || "" });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editingItem) dispatch(updateTripBook({ id: editingItem.id, updates: formData }));
-        else dispatch(addTripBook(formData));
-        setIsDialogOpen(false);
-        setEditingItem(null);
+        try {
+            if (editingItem) await editTripBook(editingItem.id, formData);
+            else await createTripBook(formData);
+            setIsDialogOpen(false);
+            setEditingItem(null);
+        } catch { }
     };
 
-    const handleDelete = () => {
-        if (deletingItem) { dispatch(deleteTripBook(deletingItem.id)); setIsDeleteDialogOpen(false); }
+    const handleDelete = async () => {
+        if (deletingItem) { try { await removeTripBook(deletingItem.id); setIsDeleteDialogOpen(false); } catch { } }
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><div className="text-muted-foreground">Loading...</div></div>;
