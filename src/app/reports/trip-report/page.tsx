@@ -38,8 +38,8 @@ export default function TripReportPage() {
     const filteredTrips = trips.filter((trip) => {
         if (filters.fromDate && new Date(trip.date) < new Date(filters.fromDate)) return false;
         if (filters.toDate && new Date(trip.date) > new Date(filters.toDate)) return false;
-        if (filters.vehicleNo && trip.vehNo !== filters.vehicleNo) return false;
-        if (filters.driverName && trip.driverName !== filters.driverName) return false;
+        if (filters.vehicleNo && filters.vehicleNo !== "all" && trip.vehNo !== filters.vehicleNo) return false;
+        if (filters.driverName && filters.driverName !== "all" && trip.driverName !== filters.driverName) return false;
         return true;
     });
 
@@ -101,20 +101,20 @@ export default function TripReportPage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label>Vehicle</Label>
-                                <Select value={filters.vehicleNo} onValueChange={(v) => setFilters({ ...filters, vehicleNo: v })}>
+                                <Select value={filters.vehicleNo || "all"} onValueChange={(v) => setFilters({ ...filters, vehicleNo: v })}>
                                     <SelectTrigger><SelectValue placeholder="All vehicles" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">All Vehicles</SelectItem>
+                                        <SelectItem value="all">All Vehicles</SelectItem>
                                         {vehicles.map((v) => <SelectItem key={v.id} value={v.vehNo}>{v.vehNo}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="grid gap-2">
                                 <Label>Driver</Label>
-                                <Select value={filters.driverName} onValueChange={(v) => setFilters({ ...filters, driverName: v })}>
+                                <Select value={filters.driverName || "all"} onValueChange={(v) => setFilters({ ...filters, driverName: v })}>
                                     <SelectTrigger><SelectValue placeholder="All drivers" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">All Drivers</SelectItem>
+                                        <SelectItem value="all">All Drivers</SelectItem>
                                         {drivers.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
