@@ -3,7 +3,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ReduxProvider } from "@/components/providers/redux-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
@@ -27,12 +27,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <ReduxProvider>
-              <div className="flex h-screen overflow-hidden">
-                <AppSidebar />
-                <main className="flex-1 overflow-auto bg-background">
-                  {children}
-                </main>
-              </div>
+              {children}
               <Toaster />
             </ReduxProvider>
           </ThemeProvider>

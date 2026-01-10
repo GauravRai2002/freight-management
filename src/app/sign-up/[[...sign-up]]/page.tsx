@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSignUp } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { useSignUp, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Truck, Loader2, Eye, EyeOff } from "lucide-react";
 export default function SignUpPage() {
     const { isLoaded, signUp, setActive } = useSignUp();
     const router = useRouter();
+    const { isSignedIn } = useUser();
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -23,6 +24,12 @@ export default function SignUpPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [pendingVerification, setPendingVerification] = useState(false);
     const [code, setCode] = useState("");
+
+    useEffect(() => {
+        if (isSignedIn) {
+            router.push("/");
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { useSignIn, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,21 @@ import { Truck, Loader2, Eye, EyeOff } from "lucide-react";
 export default function SignInPage() {
     const { isLoaded, signIn, setActive } = useSignIn();
     const router = useRouter();
+    const { isSignedIn } = useUser();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isSignedIn && isLoaded) {
+            router.push("/");
+        }
+
+        console.log(isSignedIn)
+    }, [isLoaded]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
