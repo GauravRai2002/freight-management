@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useOrganizationList, useUser, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,62 +8,57 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Loader2, Truck, Mail, Calendar } from "lucide-react";
-import { checkInvitations, setupMember, acceptInvitation, Invitation } from "@/lib/authService";
+import { setupMember, syncMemberAfterInvite } from "@/lib/authService";
 
 export default function OnboardingPage() {
     const { user } = useUser();
     const { getToken } = useAuth();
-    const { createOrganization, setActive } = useOrganizationList();
+    const {
+        createOrganization,
+        setActive,
+        userInvitations,
+        isLoaded: invitationsLoaded
+    } = useOrganizationList({
+        userInvitations: {
+            infinite: true,
+        },
+    });
     const router = useRouter();
 
     const [orgName, setOrgName] = useState("");
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [checkingInvitations, setCheckingInvitations] = useState(true);
-    const [invitations, setInvitations] = useState<Invitation[]>([]);
     const [showCreateForm, setShowCreateForm] = useState(false);
 
-    // Check for invitations on mount
-    useEffect(() => {
-        const fetchInvitations = async () => {
-            try {
-                const token = await getToken();
-                if (!token) {
-                    setCheckingInvitations(false);
-                    return;
-                }
+    // Get pending invitations from Clerk
+    const invitations = userInvitations?.data || [];
+    const checkingInvitations = !invitationsLoaded;
 
-                const pendingInvitations = await checkInvitations(token);
-                setInvitations(pendingInvitations); // New endpoint only returns pending invitations
-            } catch (err) {
-                console.error("Failed to check invitations:", err);
-            } finally {
-                setCheckingInvitations(false);
-            }
-        };
-
-        fetchInvitations();
-    }, [getToken]);
-
-    const handleAcceptInvitation = async (invitation: Invitation) => {
+    const handleAcceptInvitation = async (invitation: (typeof invitations)[number]) => {
         setIsLoading(true);
         setError("");
 
         try {
+            // Accept invitation in Clerk first
+            await invitation.accept();
+
+            // Sync with backend - create member record with custom role
             const token = await getToken();
-            if (!token) {
-                setError("Authentication required");
-                return;
+            if (token) {
+                try {
+                    await syncMemberAfterInvite(token, invitation.publicOrganizationData.id);
+                } catch (syncError) {
+                    console.error("Backend sync failed (non-critical):", syncError);
+                    // Continue even if backend sync fails - user is already in Clerk org
+                }
             }
 
-            const success = await acceptInvitation(token, invitation.id);
-
-            if (success && setActive) {
-                await setActive({ organization: invitation.organizationId });
-                router.push("/");
-            } else {
-                setError("Failed to accept invitation");
+            // Set the organization as active
+            if (setActive) {
+                await setActive({ organization: invitation.publicOrganizationData.id });
             }
+
+            router.push("/");
         } catch (err) {
             console.error("Error accepting invitation:", err);
             setError("Failed to accept invitation");
@@ -150,7 +145,7 @@ export default function OnboardingPage() {
                                     <div className="flex items-center gap-2">
                                         <Building2 className="h-4 w-4 text-muted-foreground" />
                                         <p className="font-medium">
-                                            {invitation.organizationName || 'Organization'}
+                                            {invitation.publicOrganizationData?.name || 'Organization'}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -159,9 +154,9 @@ export default function OnboardingPage() {
                                             Invited {new Date(invitation.createdAt).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    {invitation.roleName && (
+                                    {invitation.role && (
                                         <p className="text-sm text-muted-foreground">
-                                            Role: <span className="font-medium capitalize">{invitation.roleName}</span>
+                                            Role: <span className="font-medium capitalize">{invitation.role}</span>
                                         </p>
                                     )}
                                 </div>

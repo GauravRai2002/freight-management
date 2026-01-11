@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useOrganization } from "@clerk/nextjs";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import { PermissionGate } from "@/components/auth/PermissionGate";
 
 export default function SettingsPage() {
     const { getToken } = useAuth();
+    const { organization } = useOrganization();
     const { members, loading: membersLoading, fetchMembers, changeMemberRole } = useMembers();
     const { roles, loading: rolesLoading, fetchRoles } = useRoles();
     const { can } = usePermissions();
@@ -67,7 +68,7 @@ export default function SettingsPage() {
 
     const handleInvite = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inviteEmail || !inviteRoleId) return;
+        if (!inviteEmail || !inviteRoleId || !organization) return;
 
         setInviting(true);
         setInviteError("");
@@ -80,12 +81,26 @@ export default function SettingsPage() {
                 return;
             }
 
+            // Get the selected role to determine Clerk role mapping
+            const selectedRole = roles.find(r => r.id === inviteRoleId);
+            // Map custom roles to Clerk roles: admin -> org:admin, others -> org:member
+            const clerkRole = selectedRole?.name === 'admin' ? 'org:admin' : 'org:member';
+
+            // First, create invitation in Clerk
+            await organization.inviteMember({
+                emailAddress: inviteEmail,
+                role: clerkRole,
+            });
+
+            // Then sync with backend to store custom role assignment
             await inviteMember(token, inviteEmail, inviteRoleId);
+
             setInviteSuccess(`Invitation sent to ${inviteEmail}`);
             setInviteEmail("");
             setInviteRoleId("");
             loadInvitations();
         } catch (error) {
+            console.error("Error inviting member:", error);
             setInviteError(error instanceof Error ? error.message : "Failed to send invitation");
         } finally {
             setInviting(false);
@@ -107,6 +122,7 @@ export default function SettingsPage() {
     const handleRoleChange = async (memberId: string, newRoleId: string) => {
         try {
             await changeMemberRole(memberId, newRoleId);
+            await fetchMembers();
         } catch (error) {
             console.error("Failed to update role:", error);
         }
@@ -220,7 +236,7 @@ export default function SettingsPage() {
                                             <TableRow key={invitation.id}>
                                                 <TableCell>{invitation.email}</TableCell>
                                                 <TableCell className="capitalize">
-                                                    {invitation.role?.name || 'Unknown'}
+                                                    {roles.find(r => r.id === invitation.roleId)?.name || 'Unknown'}
                                                 </TableCell>
                                                 <TableCell>
                                                     {new Date(invitation.createdAt).toLocaleDateString()}
@@ -274,18 +290,18 @@ export default function SettingsPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {members.map((member) => (
-                                            <TableRow key={member.id}>
-                                                <TableCell>{member.user?.email || 'N/A'}</TableCell>
+                                            <TableRow key={member?.id}>
+                                                <TableCell>{member?.email || 'N/A'}</TableCell>
                                                 <TableCell>
-                                                    {member.user?.firstName || member.user?.lastName
-                                                        ? `${member.user.firstName || ''} ${member.user.lastName || ''}`.trim()
+                                                    {member?.firstName || member?.lastName
+                                                        ? `${member?.firstName || ''} ${member?.lastName || ''}`.trim()
                                                         : 'N/A'}
                                                 </TableCell>
                                                 <TableCell>
                                                     {can("members:manage") ? (
                                                         <Select
-                                                            value={member.role.id}
-                                                            onValueChange={(value) => handleRoleChange(member.id, value)}
+                                                            value={member?.role?.id}
+                                                            onValueChange={(value) => handleRoleChange(member?.id, value)}
                                                             disabled={rolesLoading}
                                                         >
                                                             <SelectTrigger className="w-[150px]">
@@ -300,11 +316,11 @@ export default function SettingsPage() {
                                                             </SelectContent>
                                                         </Select>
                                                     ) : (
-                                                        <span className="capitalize">{member.role.name}</span>
+                                                        <span className="capitalize">{member?.role?.name}</span>
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {new Date(member.joinedAt).toLocaleDateString()}
+                                                    {new Date(member?.joinedAt).toLocaleDateString()}
                                                 </TableCell>
                                             </TableRow>
                                         ))}

@@ -1,8 +1,7 @@
 "use client";
 
+import { createContext, useContext, ReactNode, useState, useEffect, useCallback } from "react";
 import { useAuth, useOrganization, useUser } from "@clerk/nextjs";
-import { useState, useEffect, useCallback, useContext } from "react";
-import { usePermissionsContextOrNull } from "@/contexts/PermissionsContext";
 
 interface MemberInfo {
     id: string;
@@ -15,7 +14,7 @@ interface MemberInfo {
     joinedAt: string;
 }
 
-interface UsePermissionsReturn {
+interface PermissionsContextValue {
     loading: boolean;
     member: MemberInfo | null;
     role: string | null;
@@ -29,16 +28,9 @@ interface UsePermissionsReturn {
     refetch: () => Promise<void>;
 }
 
-export function usePermissions(): UsePermissionsReturn {
-    // Try to use context first - this prevents multiple API calls
-    const context = usePermissionsContextOrNull();
-    const standalone = usePermissionsStandalone();
+const PermissionsContext = createContext<PermissionsContextValue | null>(null);
 
-    // If context is available, use it; otherwise use standalone
-    return context ?? standalone;
-}
-
-function usePermissionsStandalone(): UsePermissionsReturn {
+export function PermissionsProvider({ children }: { children: ReactNode }) {
     const { getToken } = useAuth();
     const { organization } = useOrganization();
     const { user } = useUser();
@@ -80,7 +72,7 @@ function usePermissionsStandalone(): UsePermissionsReturn {
         } finally {
             setLoading(false);
         }
-    }, [user, organization, getToken]);
+    }, [user?.id, organization?.id, getToken]);
 
     useEffect(() => {
         fetchPermissions();
@@ -106,7 +98,7 @@ function usePermissionsStandalone(): UsePermissionsReturn {
         return perms.every(p => can(p));
     }, [can]);
 
-    return {
+    const value: PermissionsContextValue = {
         loading,
         member,
         role: roleName,
@@ -119,5 +111,22 @@ function usePermissionsStandalone(): UsePermissionsReturn {
         isViewer: roleName === "viewer",
         refetch: fetchPermissions,
     };
+
+    return (
+        <PermissionsContext.Provider value={value}>
+            {children}
+        </PermissionsContext.Provider>
+    );
 }
 
+export function usePermissionsContextOrNull(): PermissionsContextValue | null {
+    return useContext(PermissionsContext);
+}
+
+export function usePermissionsContext(): PermissionsContextValue {
+    const context = useContext(PermissionsContext);
+    if (!context) {
+        throw new Error("usePermissionsContext must be used within a PermissionsProvider");
+    }
+    return context;
+}

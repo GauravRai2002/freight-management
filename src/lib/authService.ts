@@ -118,13 +118,14 @@ export async function setupMember(token: string, orgId: string): Promise<SetupMe
 /**
  * Accept an invitation to join an organization
  */
-export async function acceptInvitation(token: string, invitationId: string): Promise<boolean> {
+export async function acceptInvitation(token: string, invitationId: string, organizationId: string): Promise<boolean> {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/invitations/${invitationId}/accept`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
+                'x-organization-id': organizationId,
             },
         });
 
@@ -134,3 +135,31 @@ export async function acceptInvitation(token: string, invitationId: string): Pro
         return false;
     }
 }
+
+/**
+ * Sync member creation with backend after accepting a Clerk invitation
+ * This creates the member record with the custom role from the backend invitation
+ */
+export async function syncMemberAfterInvite(token: string, organizationId: string): Promise<SetupMemberResponse | null> {
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/sync-member-after-invite`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'x-organization-id': organizationId,
+            },
+        });
+
+        if (!response.ok) {
+            console.error('Failed to sync member after invite:', response.statusText);
+            return null;
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error syncing member after invite:', error);
+        return null;
+    }
+}
+

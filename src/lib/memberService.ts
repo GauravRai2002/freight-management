@@ -5,18 +5,17 @@
 export interface Member {
     id: string;
     userId: string;
-    organizationId: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    imageUrl?: string;
     role: {
         id: string;
         name: string;
         description: string | null;
     };
     joinedAt: string;
-    user?: {
-        email: string;
-        firstName: string | null;
-        lastName: string | null;
-    };
+    invitedBy?: string | null;
 }
 
 export interface Role {
@@ -57,7 +56,8 @@ export async function getMembers(token: string): Promise<Member[]> {
         }
 
         const data = await response.json();
-        return data.members || [];
+        // Handle both formats: direct array or { members: [...] }
+        return Array.isArray(data) ? data : (data.members || []);
     } catch (error) {
         console.error('Error fetching members:', error);
         throw error;
@@ -110,7 +110,8 @@ export async function getRoles(token: string): Promise<Role[]> {
         }
 
         const data = await response.json();
-        return data.roles || [];
+        // Handle both formats: direct array or { roles: [...] }
+        return Array.isArray(data) ? data : (data.roles || []);
     } catch (error) {
         console.error('Error fetching roles:', error);
         throw error;
@@ -164,7 +165,8 @@ export async function getPendingInvitations(token: string): Promise<InvitationIt
         }
 
         const data = await response.json();
-        return data.invitations || [];
+        // Handle both formats: direct array or { invitations: [...] }
+        return Array.isArray(data) ? data : (data.invitations || []);
     } catch (error) {
         console.error('Error fetching invitations:', error);
         throw error;
