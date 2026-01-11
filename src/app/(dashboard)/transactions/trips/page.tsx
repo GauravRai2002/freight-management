@@ -49,6 +49,10 @@ export default function TripsPage() {
         exIncome: 0,
         driverBal: 0,
         lockStatus: false,
+        plantName: "",
+        carQty: 0,
+        loadKm: 0,
+        emptyKm: 0,
     };
 
     const [formData, setFormData] = useState(defaultFormData);
@@ -92,6 +96,10 @@ export default function TripsPage() {
                 exIncome: item.exIncome,
                 driverBal: item.driverBal,
                 lockStatus: item.lockStatus,
+                plantName: item.plantName || "",
+                carQty: item.carQty || 0,
+                loadKm: item.loadKm || 0,
+                emptyKm: item.emptyKm || 0,
             });
         } else {
             setEditingItem(null);

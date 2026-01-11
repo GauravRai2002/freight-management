@@ -39,7 +39,26 @@ const ScrollBar = React.forwardRef<
         )}
         {...props}
     >
-        <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
+        {/* <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" /> */}
+
+        {/* Vertical Scrollbar */}
+        <ScrollAreaPrimitive.Scrollbar
+            className="flex select-none touch-none p-0.5 bg-gray-100 transition-colors duration-150 ease-out hover:bg-gray-200 data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:h-2.5"
+            orientation="vertical"
+        >
+            <ScrollAreaPrimitive.Thumb className="flex-1 bg-gray-400 rounded-[10px] relative before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-full before:h-full before:min-h-[44px] before:min-w-[44px]" />
+        </ScrollAreaPrimitive.Scrollbar>
+
+        {/* Horizontal Scrollbar */}
+        <ScrollAreaPrimitive.Scrollbar
+            className="flex select-none touch-none p-0.5 bg-gray-100 transition-colors duration-150 ease-out hover:bg-gray-200 data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:h-2.5"
+            orientation="horizontal"
+        >
+            <ScrollAreaPrimitive.Thumb className="flex-1 bg-gray-400 rounded-[10px] relative before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-full before:h-full before:min-h-[44px] before:min-w-[44px]" />
+        </ScrollAreaPrimitive.Scrollbar>
+
+        {/* Corner */}
+        <ScrollAreaPrimitive.Corner className="bg-gray-100" />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
 ));
 ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName;

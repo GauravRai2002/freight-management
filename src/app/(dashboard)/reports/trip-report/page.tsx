@@ -39,14 +39,20 @@ export default function TripReportPage() {
         return true;
     });
 
-    // Calculate summary
+    // Calculate summary - parse values as numbers since backend may return strings
+    const toNum = (val: unknown): number => {
+        if (typeof val === 'number') return isNaN(val) ? 0 : val;
+        if (typeof val === 'string') return parseFloat(val) || 0;
+        return 0;
+    };
+
     const summary = {
         totalTrips: filteredTrips.length,
-        totalFare: filteredTrips.reduce((sum, t) => sum + t.totalTripFare, 0),
-        totalExpense: filteredTrips.reduce((sum, t) => sum + t.tripExpense, 0),
-        totalProfit: filteredTrips.reduce((sum, t) => sum + t.profitStatement, 0),
-        totalKm: filteredTrips.reduce((sum, t) => sum + t.tripKm, 0),
-        totalFuel: filteredTrips.reduce((sum, t) => sum + t.fuelExpAmt, 0),
+        totalFare: filteredTrips.reduce((sum, t) => sum + toNum(t.totalTripFare), 0),
+        totalExpense: filteredTrips.reduce((sum, t) => sum + toNum(t.tripExpense), 0),
+        totalProfit: filteredTrips.reduce((sum, t) => sum + toNum(t.profitStatement), 0),
+        totalKm: filteredTrips.reduce((sum, t) => sum + toNum(t.tripKm), 0),
+        totalFuel: filteredTrips.reduce((sum, t) => sum + toNum(t.fuelExpAmt), 0),
     };
 
     const clearFilters = () => {
@@ -123,7 +129,7 @@ export default function TripReportPage() {
                 </Card>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <Card>
                         <CardContent className="pt-4">
                             <div className="flex items-center gap-2">

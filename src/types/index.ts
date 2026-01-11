@@ -111,6 +111,11 @@ export interface Trip {
     exIncome: number;
     driverBal: number;
     lockStatus: boolean;
+    // New fields for import
+    plantName: string;      // Plant/Party name (e.g., "MARKET", "TOYOTA")
+    carQty: number;         // Number of cars/units transported
+    loadKm: number;         // KM traveled when loaded
+    emptyKm: number;        // KM traveled when empty
     createdAt: string;
     updatedAt: string;
 }

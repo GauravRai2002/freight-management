@@ -33,10 +33,17 @@ export default function DashboardPage() {
     fetchTripBooks();
   }, [fetchVehicles, fetchDrivers, fetchBillingParties, fetchTransporters, fetchTrips, fetchTripBooks]);
 
+  // Helper to parse values as numbers (backend may return strings)
+  const toNum = (val: unknown): number => {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (typeof val === 'string') return parseFloat(val) || 0;
+    return 0;
+  };
+
   // Calculate totals
-  const totalRevenue = tripBooks.reduce((sum, tb) => sum + (tb.tripAmount || 0), 0);
-  const totalProfit = tripBooks.reduce((sum, tb) => sum + (tb.netProfit || 0), 0);
-  const pendingAmount = tripBooks.reduce((sum, tb) => sum + (tb.pendingAmt || 0), 0);
+  const totalRevenue = tripBooks.reduce((sum, tb) => sum + toNum(tb.tripAmount), 0);
+  const totalProfit = tripBooks.reduce((sum, tb) => sum + toNum(tb.netProfit), 0);
+  const pendingAmount = tripBooks.reduce((sum, tb) => sum + toNum(tb.pendingAmt), 0);
 
   const stats = [
     {
@@ -174,13 +181,13 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Total Kilometers</span>
                   <span className="font-medium">
-                    {trips.reduce((sum, t) => sum + (t.tripKm || 0), 0).toLocaleString()} km
+                    {trips.reduce((sum, t) => sum + toNum(t.tripKm), 0).toLocaleString()} km
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Fuel Expenses</span>
                   <span className="font-medium">
-                    {formatCurrency(trips.reduce((sum, t) => sum + (t.fuelExpAmt || 0), 0))}
+                    {formatCurrency(trips.reduce((sum, t) => sum + toNum(t.fuelExpAmt), 0))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">

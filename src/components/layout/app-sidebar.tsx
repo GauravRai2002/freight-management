@@ -26,6 +26,7 @@ import {
     PieChart,
     ChevronRight,
     Settings,
+    Upload,
 } from "lucide-react";
 
 interface NavItem {
@@ -69,6 +70,7 @@ const navigation: NavSection[] = [
             { title: "Party Payments", href: "/transactions/party-payments", icon: DollarSign },
             { title: "Market Veh Payments", href: "/transactions/market-veh-payments", icon: TruckIcon },
             { title: "Stock Entries", href: "/transactions/stock-entries", icon: PackageOpen },
+            { title: "Import Data", href: "/import", icon: Upload },
         ],
     },
     {

@@ -23,30 +23,36 @@ export default function BalanceSheetPage() {
         fetchTripBooks();
     }, [fetchBillingParties, fetchDrivers, fetchTransporters, fetchTrips, fetchTripBooks]);
 
+    const toNum = (val: unknown): number => {
+        if (typeof val === 'number') return isNaN(val) ? 0 : val;
+        if (typeof val === 'string') return parseFloat(val) || 0;
+        return 0;
+    };
+
     // Calculate summaries
     const partySummary = {
-        totalBillAmount: parties.reduce((sum, p) => sum + p.billAmtTrip + p.billAmtRT, 0),
-        totalReceived: parties.reduce((sum, p) => sum + p.receiveAmt, 0),
-        totalBalance: parties.reduce((sum, p) => sum + p.balanceAmt, 0),
+        totalBillAmount: parties.reduce((sum, p) => sum + toNum(p.billAmtTrip) + toNum(p.billAmtRT), 0),
+        totalReceived: parties.reduce((sum, p) => sum + toNum(p.receiveAmt), 0),
+        totalBalance: parties.reduce((sum, p) => sum + toNum(p.balanceAmt), 0),
     };
 
     const driverSummary = {
-        totalDebit: drivers.reduce((sum, d) => sum + d.debit, 0),
-        totalCredit: drivers.reduce((sum, d) => sum + d.credit, 0),
-        totalBalance: drivers.reduce((sum, d) => sum + d.closeBal, 0),
+        totalDebit: drivers.reduce((sum, d) => sum + toNum(d.debit), 0),
+        totalCredit: drivers.reduce((sum, d) => sum + toNum(d.credit), 0),
+        totalBalance: drivers.reduce((sum, d) => sum + toNum(d.closeBal), 0),
     };
 
     const transporterSummary = {
-        totalBillAmount: transporters.reduce((sum, t) => sum + t.billAmt, 0),
-        totalPaid: transporters.reduce((sum, t) => sum + t.paidAmt, 0),
-        totalBalance: transporters.reduce((sum, t) => sum + t.closeBal, 0),
+        totalBillAmount: transporters.reduce((sum, t) => sum + toNum(t.billAmt), 0),
+        totalPaid: transporters.reduce((sum, t) => sum + toNum(t.paidAmt), 0),
+        totalBalance: transporters.reduce((sum, t) => sum + toNum(t.closeBal), 0),
     };
 
     const tripSummary = {
         totalTrips: trips.length,
-        totalRevenue: trips.reduce((sum, t) => sum + t.totalTripFare, 0),
-        totalExpense: trips.reduce((sum, t) => sum + t.tripExpense, 0),
-        totalProfit: trips.reduce((sum, t) => sum + t.profitStatement, 0),
+        totalRevenue: trips.reduce((sum, t) => sum + toNum(t.totalTripFare), 0),
+        totalExpense: trips.reduce((sum, t) => sum + toNum(t.tripExpense), 0),
+        totalProfit: trips.reduce((sum, t) => sum + toNum(t.profitStatement), 0),
     };
 
     const loading = partiesLoading || driversLoading || transportersLoading;

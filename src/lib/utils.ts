@@ -6,7 +6,11 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | null | undefined): string {
+    // Handle NaN, null, undefined
+    if (amount === null || amount === undefined || isNaN(amount)) {
+        amount = 0;
+    }
     return new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
