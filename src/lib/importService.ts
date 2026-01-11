@@ -8,10 +8,10 @@ import {
     TRIP_FIELD_MAPPINGS,
     EXPENSE_FIELD_MAPPINGS,
     IGNORED_COLUMNS,
+    OPTIONAL_TRIP_FIELDS,
     DEFAULT_TRIP_VALUES,
     TripImportData,
     parseExcelDate,
-    parseTripNumber,
     isMarketTrip,
 } from './importConfig';
 
@@ -21,6 +21,7 @@ export interface ParseResult {
     headers: string[];
     extraFields: string[];
     missingFields: string[];
+    fieldsUsingDefaults: string[];  // Optional fields not in file, will use defaults
     errors: string[];
     totalRows: number;
 }
@@ -52,6 +53,7 @@ export async function parseImportFile(file: File): Promise<ParseResult> {
                 headers: [],
                 extraFields: [],
                 missingFields: [],
+                fieldsUsingDefaults: [],
                 errors: ['No data found in file'],
                 totalRows: 0,
             };
@@ -80,6 +82,10 @@ export async function parseImportFile(file: File): Promise<ParseResult> {
         // Required fields that must be present
         const requiredFields = ['tripNo', 'date', 'vehNo', 'from', 'to', 'tripFare'];
         const missingFields = requiredFields.filter(f => !mappedTargetFields.has(f));
+
+        // Determine which optional fields are missing and will use defaults
+        const optionalFieldNames = Object.keys(OPTIONAL_TRIP_FIELDS);
+        const fieldsUsingDefaults = optionalFieldNames.filter(f => !mappedTargetFields.has(f));
 
         // Parse each row
         const data: TripImportData[] = [];
@@ -183,6 +189,7 @@ export async function parseImportFile(file: File): Promise<ParseResult> {
             headers,
             extraFields,
             missingFields,
+            fieldsUsingDefaults,
             errors,
             totalRows: data.length,
         };
@@ -193,6 +200,7 @@ export async function parseImportFile(file: File): Promise<ParseResult> {
             headers: [],
             extraFields: [],
             missingFields: [],
+            fieldsUsingDefaults: [],
             errors: [`Failed to parse file: ${error instanceof Error ? error.message : 'Unknown error'}`],
             totalRows: 0,
         };

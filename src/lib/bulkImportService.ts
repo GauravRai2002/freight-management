@@ -83,7 +83,7 @@ export function prepareBulkImportPayload(importData: TripImportData[]): BulkImpo
     for (const row of importData) {
         if (!row.isValid) continue;
 
-        // Add trip
+        // Add trip - use imported values when available, fallback to defaults
         trips.push({
             tripNo: row.tripNo,
             date: row.date,
@@ -100,17 +100,18 @@ export function prepareBulkImportPayload(importData: TripImportData[]): BulkImpo
             loadKm: row.loadKm,
             emptyKm: row.emptyKm,
             isMarketTrip: isMarketTrip(row.plantName),
-            driverName: DEFAULT_TRIP_VALUES.driverName,
-            fuelExpAmt: DEFAULT_TRIP_VALUES.fuelExpAmt,
-            average: DEFAULT_TRIP_VALUES.average,
-            rtFare: DEFAULT_TRIP_VALUES.rtFare,
-            stMiter: DEFAULT_TRIP_VALUES.stMiter,
-            endMiter: DEFAULT_TRIP_VALUES.endMiter,
-            dieselRate: DEFAULT_TRIP_VALUES.dieselRate,
-            ltr: DEFAULT_TRIP_VALUES.ltr,
-            exIncome: DEFAULT_TRIP_VALUES.exIncome,
-            driverBal: DEFAULT_TRIP_VALUES.driverBal,
-            lockStatus: DEFAULT_TRIP_VALUES.lockStatus,
+            // Optional fields - use imported value or fall back to default
+            driverName: row.driverName ?? DEFAULT_TRIP_VALUES.driverName,
+            fuelExpAmt: row.fuelExpAmt ?? DEFAULT_TRIP_VALUES.fuelExpAmt,
+            average: row.average ?? DEFAULT_TRIP_VALUES.average,
+            rtFare: row.rtFare ?? DEFAULT_TRIP_VALUES.rtFare,
+            stMiter: row.stMiter ?? DEFAULT_TRIP_VALUES.stMiter,
+            endMiter: row.endMiter ?? DEFAULT_TRIP_VALUES.endMiter,
+            dieselRate: row.dieselRate ?? DEFAULT_TRIP_VALUES.dieselRate,
+            ltr: row.ltr ?? DEFAULT_TRIP_VALUES.ltr,
+            exIncome: row.exIncome ?? DEFAULT_TRIP_VALUES.exIncome,
+            driverBal: row.driverBal ?? DEFAULT_TRIP_VALUES.driverBal,
+            lockStatus: row.lockStatus ?? DEFAULT_TRIP_VALUES.lockStatus,
         });
 
         // Add expenses for this trip

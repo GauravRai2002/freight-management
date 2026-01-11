@@ -65,6 +65,57 @@ export const TRIP_FIELD_MAPPINGS: Record<string, { field: keyof TripImportData; 
     'profitStatement': { field: 'profitStatement', type: 'number' },
     'profit_statement': { field: 'profitStatement', type: 'number' },
     'Profit': { field: 'profitStatement', type: 'number' },
+    // Driver name variations (optional)
+    'Driver Name': { field: 'driverName', type: 'string' },
+    'driverName': { field: 'driverName', type: 'string' },
+    'driver_name': { field: 'driverName', type: 'string' },
+    'Driver': { field: 'driverName', type: 'string' },
+    // Fuel expense variations (optional)
+    'Fuel Expense': { field: 'fuelExpAmt', type: 'number' },
+    'fuelExpAmt': { field: 'fuelExpAmt', type: 'number' },
+    'fuel_exp_amt': { field: 'fuelExpAmt', type: 'number' },
+    'Fuel Exp': { field: 'fuelExpAmt', type: 'number' },
+    // Average variations (optional)
+    'Average': { field: 'average', type: 'number' },
+    'average': { field: 'average', type: 'number' },
+    'Avg': { field: 'average', type: 'number' },
+    // RT fare variations (optional)
+    'RT Fare': { field: 'rtFare', type: 'number' },
+    'rtFare': { field: 'rtFare', type: 'number' },
+    'rt_fare': { field: 'rtFare', type: 'number' },
+    'Return Fare': { field: 'rtFare', type: 'number' },
+    // Start meter variations (optional)
+    'Start Meter': { field: 'stMiter', type: 'number' },
+    'stMiter': { field: 'stMiter', type: 'number' },
+    'st_miter': { field: 'stMiter', type: 'number' },
+    'Start KM': { field: 'stMiter', type: 'number' },
+    // End meter variations (optional)
+    'End Meter': { field: 'endMiter', type: 'number' },
+    'endMiter': { field: 'endMiter', type: 'number' },
+    'end_miter': { field: 'endMiter', type: 'number' },
+    'End KM': { field: 'endMiter', type: 'number' },
+    // Diesel rate variations (optional)
+    'Diesel Rate': { field: 'dieselRate', type: 'number' },
+    'dieselRate': { field: 'dieselRate', type: 'number' },
+    'diesel_rate': { field: 'dieselRate', type: 'number' },
+    // Liters variations (optional)
+    'Liters': { field: 'ltr', type: 'number' },
+    'ltr': { field: 'ltr', type: 'number' },
+    'Ltrs': { field: 'ltr', type: 'number' },
+    'Ltr': { field: 'ltr', type: 'number' },
+    // Extra income variations (optional)
+    'Extra Income': { field: 'exIncome', type: 'number' },
+    'exIncome': { field: 'exIncome', type: 'number' },
+    'ex_income': { field: 'exIncome', type: 'number' },
+    // Driver balance variations (optional)
+    'Driver Balance': { field: 'driverBal', type: 'number' },
+    'driverBal': { field: 'driverBal', type: 'number' },
+    'driver_bal': { field: 'driverBal', type: 'number' },
+    // Lock status variations (optional)
+    'Lock Status': { field: 'lockStatus', type: 'boolean' },
+    'lockStatus': { field: 'lockStatus', type: 'boolean' },
+    'lock_status': { field: 'lockStatus', type: 'boolean' },
+    'Locked': { field: 'lockStatus', type: 'boolean' },
 };
 
 // Excel column headers that map to Expense entries
@@ -121,12 +172,39 @@ export interface TripImportData {
     emptyKm: number;
     tripKm: number;
     profitStatement: number;
+    // Optional fields (will use defaults if not provided)
+    driverName?: string;
+    fuelExpAmt?: number;
+    average?: number;
+    rtFare?: number;
+    stMiter?: number;
+    endMiter?: number;
+    dieselRate?: number;
+    ltr?: number;
+    exIncome?: number;
+    driverBal?: number;
+    lockStatus?: boolean;
     // Expense amounts (not stored on Trip, will create Expense entries)
     expenses: Record<string, number>;
     // Validation
     isValid: boolean;
     errors: string[];
 }
+
+// Optional fields with their display names and default values
+export const OPTIONAL_TRIP_FIELDS: Record<string, { displayName: string; defaultValue: string | number | boolean }> = {
+    driverName: { displayName: 'Driver Name', defaultValue: '' },
+    fuelExpAmt: { displayName: 'Fuel Expense', defaultValue: 0 },
+    average: { displayName: 'Average', defaultValue: 0 },
+    rtFare: { displayName: 'RT Fare', defaultValue: 0 },
+    stMiter: { displayName: 'Start Meter', defaultValue: 0 },
+    endMiter: { displayName: 'End Meter', defaultValue: 0 },
+    dieselRate: { displayName: 'Diesel Rate', defaultValue: 0 },
+    ltr: { displayName: 'Liters', defaultValue: 0 },
+    exIncome: { displayName: 'Extra Income', defaultValue: 0 },
+    driverBal: { displayName: 'Driver Balance', defaultValue: 0 },
+    lockStatus: { displayName: 'Lock Status', defaultValue: false },
+};
 
 // Default values for fields not in import
 export const DEFAULT_TRIP_VALUES = {

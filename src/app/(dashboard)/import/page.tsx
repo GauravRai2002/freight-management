@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FileUploadZone } from "@/components/import/FileUploadZone";
 import { DataPreviewTable } from "@/components/import/DataPreviewTable";
 import { FieldMismatchAlert } from "@/components/import/FieldMismatchAlert";
+import { DefaultValuesAlert } from "@/components/import/DefaultValuesAlert";
 import { useImport } from "@/hooks/useImport";
 import { Upload, Eye, Loader2, CheckCircle, AlertCircle, ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
 
@@ -26,6 +27,7 @@ export default function ImportPage() {
     } = useImport();
 
     const [showFieldAlerts, setShowFieldAlerts] = useState(true);
+    const [showDefaultsAlert, setShowDefaultsAlert] = useState(true);
 
     const steps = [
         { id: "upload", label: "Upload", icon: Upload },
@@ -117,6 +119,13 @@ export default function ImportPage() {
                                         extraFields={parseResult.extraFields}
                                         missingFields={parseResult.missingFields}
                                         onDismiss={() => setShowFieldAlerts(false)}
+                                    />
+                                )}
+
+                                {showDefaultsAlert && parseResult.fieldsUsingDefaults.length > 0 && (
+                                    <DefaultValuesAlert
+                                        fieldsUsingDefaults={parseResult.fieldsUsingDefaults}
+                                        onDismiss={() => setShowDefaultsAlert(false)}
                                     />
                                 )}
 
