@@ -62,7 +62,7 @@ export default function TripReportPage() {
     const exportToCSV = () => {
         const headers = ["Trip #", "Date", "Vehicle", "Driver", "From", "To", "KM", "Fare", "Expense", "Profit"];
         const rows = filteredTrips.map((t) => [
-            t.tripNo, formatDate(t.date), t.vehNo, t.driverName, t.from, t.to, t.tripKm, t.totalTripFare, t.tripExpense, t.profitStatement,
+            t.tripNo, formatDate(t.date), t.vehNo, t.driverName, t.fromLocation, t.toLocation, t.tripKm, t.totalTripFare, t.tripExpense, t.profitStatement,
         ]);
         const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
         const blob = new Blob([csv], { type: "text/csv" });
@@ -219,7 +219,7 @@ export default function TripReportPage() {
                                                 <TableCell>{formatDate(trip.date)}</TableCell>
                                                 <TableCell>{trip.vehNo}</TableCell>
                                                 <TableCell>{trip.driverName || "-"}</TableCell>
-                                                <TableCell>{trip.from} → {trip.to}</TableCell>
+                                                <TableCell>{trip.fromLocation} &rarr; {trip.toLocation}</TableCell>
                                                 <TableCell className="text-right">{trip.tripKm}</TableCell>
                                                 <TableCell className="text-right">{formatCurrency(trip.totalTripFare)}</TableCell>
                                                 <TableCell className="text-right text-red-600">{formatCurrency(trip.tripExpense)}</TableCell>

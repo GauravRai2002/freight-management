@@ -31,8 +31,8 @@ export default function TripsPage() {
         date: toISODateString(new Date()),
         vehNo: "",
         driverName: "",
-        from: "",
-        to: "",
+        fromLocation: "",
+        toLocation: "",
         tripKm: 0,
         fuelExpAmt: 0,
         average: 0,
@@ -67,8 +67,8 @@ export default function TripsPage() {
         (t) =>
             t.tripNo.toString().includes(searchQuery) ||
             t.vehNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            t.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            t.to.toLowerCase().includes(searchQuery.toLowerCase())
+            t.fromLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.toLocation.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const handleOpenDialog = (item?: Trip) => {
@@ -78,8 +78,8 @@ export default function TripsPage() {
                 date: item.date.split("T")[0],
                 vehNo: item.vehNo,
                 driverName: item.driverName,
-                from: item.from,
-                to: item.to,
+                fromLocation: item.fromLocation,
+                toLocation: item.toLocation,
                 tripKm: item.tripKm,
                 fuelExpAmt: item.fuelExpAmt,
                 average: item.average,
@@ -178,11 +178,11 @@ export default function TripsPage() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead className="w-16">Trip #</TableHead>
+                                            <TableHead>Trip #</TableHead>
                                             <TableHead>Date</TableHead>
                                             <TableHead>Vehicle</TableHead>
                                             <TableHead>Driver</TableHead>
-                                            <TableHead>From → To</TableHead>
+                                            <TableHead>From &rarr; To</TableHead>
                                             <TableHead className="text-right">Trip Fare</TableHead>
                                             <TableHead className="text-right">Expense</TableHead>
                                             <TableHead className="text-right">Profit</TableHead>
@@ -197,7 +197,7 @@ export default function TripsPage() {
                                                 <TableCell>{formatDate(trip.date)}</TableCell>
                                                 <TableCell>{trip.vehNo}</TableCell>
                                                 <TableCell>{trip.driverName || "-"}</TableCell>
-                                                <TableCell>{trip.from} → {trip.to}</TableCell>
+                                                <TableCell>{trip.fromLocation} &rarr; {trip.toLocation}</TableCell>
                                                 <TableCell className="text-right">{formatCurrency(trip.totalTripFare)}</TableCell>
                                                 <TableCell className="text-right text-red-600">{formatCurrency(trip.tripExpense)}</TableCell>
                                                 <TableCell className="text-right font-medium">
@@ -271,12 +271,12 @@ export default function TripsPage() {
                                 {/* Row 2: From, To */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="from">From</Label>
-                                        <Input id="from" placeholder="Origin city" value={formData.from} onChange={(e) => setFormData({ ...formData, from: e.target.value.toUpperCase() })} required />
+                                        <Label htmlFor="fromLocation">From</Label>
+                                        <Input id="fromLocation" placeholder="Origin city" value={formData.fromLocation} onChange={(e) => setFormData({ ...formData, fromLocation: e.target.value.toUpperCase() })} required />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="to">To</Label>
-                                        <Input id="to" placeholder="Destination city" value={formData.to} onChange={(e) => setFormData({ ...formData, to: e.target.value.toUpperCase() })} required />
+                                        <Label htmlFor="toLocation">To</Label>
+                                        <Input id="toLocation" placeholder="Destination city" value={formData.toLocation} onChange={(e) => setFormData({ ...formData, toLocation: e.target.value.toUpperCase() })} required />
                                     </div>
                                 </div>
 

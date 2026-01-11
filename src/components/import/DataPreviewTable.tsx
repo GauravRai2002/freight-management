@@ -87,8 +87,8 @@ export function DataPreviewTable({ data, onDataChange }: DataPreviewTableProps) 
                                         />
                                     </TableCell>
                                     <TableCell className="max-w-[100px] truncate">{row.plantName || "-"}</TableCell>
-                                    <TableCell className="max-w-[80px] truncate">{row.from || "-"}</TableCell>
-                                    <TableCell className="max-w-[80px] truncate">{row.to || "-"}</TableCell>
+                                    <TableCell className="max-w-[80px] truncate">{row.fromLocation || "-"}</TableCell>
+                                    <TableCell className="max-w-[80px] truncate">{row.toLocation || "-"}</TableCell>
                                     <TableCell className="text-right">{isNaN(row.carQty) ? 0 : row.carQty}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(row.tripFare)}</TableCell>
                                     <TableCell className="text-right text-red-600">{formatCurrency(row.tripExpense)}</TableCell>

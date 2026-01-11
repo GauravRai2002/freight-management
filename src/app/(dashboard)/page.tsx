@@ -153,7 +153,7 @@ export default function DashboardPage() {
                       <div>
                         <p className="font-medium">Trip #{trip.tripNo}</p>
                         <p className="text-sm text-muted-foreground">
-                          {trip.from} → {trip.to}
+                          {trip.fromLocation} &rarr; {trip.toLocation}
                         </p>
                       </div>
                       <div className="text-right">

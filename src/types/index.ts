@@ -93,8 +93,8 @@ export interface Trip {
     date: string;
     vehNo: string;
     driverName: string;
-    from: string;
-    to: string;
+    fromLocation: string;
+    toLocation: string;
     tripKm: number;
     fuelExpAmt: number;
     average: number;

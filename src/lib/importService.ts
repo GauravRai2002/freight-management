@@ -97,8 +97,8 @@ export async function parseImportFile(file: File): Promise<ParseResult> {
                 date: '',
                 vehNo: '',
                 plantName: '',
-                from: '',
-                to: '',
+                fromLocation: '',
+                toLocation: '',
                 carQty: 0,
                 tripFare: 0,
                 tripExpense: 0,
@@ -148,10 +148,15 @@ export async function parseImportFile(file: File): Promise<ParseResult> {
             const requiredFieldNames: Record<string, string> = {
                 tripNo: 'Trip Number',
                 vehNo: 'Vehicle Number',
+                fromLocation: 'From Location',
+                toLocation: 'To Location',
             };
             for (const [field, displayName] of Object.entries(requiredFieldNames)) {
                 if (!populatedFields.has(field)) {
-                    rowErrors.push(`Missing required field: ${displayName}`);
+                    // Only tripNo and vehNo are strictly required for now based on user feedback
+                    if (field === 'tripNo' || field === 'vehNo') {
+                        rowErrors.push(`Missing required field: ${displayName}`);
+                    }
                 }
             }
 
@@ -203,8 +208,8 @@ export function convertToTripPayload(importData: TripImportData) {
         date: importData.date,
         vehNo: importData.vehNo,
         // Backend expects fromLocation/toLocation, not from/to
-        fromLocation: importData.from,
-        toLocation: importData.to,
+        fromLocation: importData.fromLocation,
+        toLocation: importData.toLocation,
         tripKm: importData.tripKm,
         tripFare: importData.tripFare,
         totalTripFare: importData.tripFare, // Same as tripFare for imports

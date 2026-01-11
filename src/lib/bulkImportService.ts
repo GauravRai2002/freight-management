@@ -10,6 +10,7 @@ export interface BulkImportRequest {
     trips: BulkTripPayload[];
     expenses: BulkExpensePayload[];
     expenseCategories: Array<{ name: string; mode: 'Fuel' | 'Expenses' | 'General' }>;
+    vehicles: Array<string>;
 }
 
 export interface BulkTripPayload {
@@ -77,6 +78,7 @@ export function prepareBulkImportPayload(importData: TripImportData[]): BulkImpo
     const trips: BulkTripPayload[] = [];
     const expenses: BulkExpensePayload[] = [];
     const categoryNames = new Set<string>();
+    const vehicles = new Set<string>();
 
     for (const row of importData) {
         if (!row.isValid) continue;
@@ -86,8 +88,8 @@ export function prepareBulkImportPayload(importData: TripImportData[]): BulkImpo
             tripNo: row.tripNo,
             date: row.date,
             vehNo: row.vehNo,
-            fromLocation: row.from,
-            toLocation: row.to,
+            fromLocation: row.fromLocation,
+            toLocation: row.toLocation,
             tripKm: row.tripKm,
             tripFare: row.tripFare,
             totalTripFare: row.tripFare,
@@ -128,6 +130,8 @@ export function prepareBulkImportPayload(importData: TripImportData[]): BulkImpo
                 });
             }
         }
+
+        vehicles.add(row.vehNo);
     }
 
     // Prepare expense categories
@@ -141,5 +145,7 @@ export function prepareBulkImportPayload(importData: TripImportData[]): BulkImpo
         };
     });
 
-    return { trips, expenses, expenseCategories };
+    const _vehicles = Array.from(vehicles);
+
+    return { trips, expenses, expenseCategories, vehicles: _vehicles };
 }

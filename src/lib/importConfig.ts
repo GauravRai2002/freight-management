@@ -27,12 +27,12 @@ export const TRIP_FIELD_MAPPINGS: Record<string, { field: keyof TripImportData; 
     'plant_name': { field: 'plantName', type: 'string' },
     'Plant Name': { field: 'plantName', type: 'string' },
     // From/To variations
-    'From': { field: 'from', type: 'string' },
-    'from': { field: 'from', type: 'string' },
-    'fromLocation': { field: 'from', type: 'string' },
-    'To': { field: 'to', type: 'string' },
-    'to': { field: 'to', type: 'string' },
-    'toLocation': { field: 'to', type: 'string' },
+    'From': { field: 'fromLocation', type: 'string' },
+    'from': { field: 'fromLocation', type: 'string' },
+    'fromLocation': { field: 'fromLocation', type: 'string' },
+    'To': { field: 'toLocation', type: 'string' },
+    'to': { field: 'toLocation', type: 'string' },
+    'toLocation': { field: 'toLocation', type: 'string' },
     // Car qty variations
     'Car QTY': { field: 'carQty', type: 'number' },
     'carQty': { field: 'carQty', type: 'number' },
@@ -112,8 +112,8 @@ export interface TripImportData {
     date: string;
     vehNo: string;
     plantName: string;
-    from: string;
-    to: string;
+    fromLocation: string;
+    toLocation: string;
     carQty: number;
     tripFare: number;
     tripExpense: number;
