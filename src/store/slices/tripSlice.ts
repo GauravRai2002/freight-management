@@ -4,13 +4,11 @@ import { Trip } from "@/types";
 interface TripState {
     items: Trip[];
     loading: boolean;
-    lastTripNo: number;
 }
 
 const initialState: TripState = {
     items: [],
     loading: true,
-    lastTripNo: 0,
 };
 
 const tripSlice = createSlice({
@@ -19,12 +17,10 @@ const tripSlice = createSlice({
     reducers: {
         setTrips: (state, action: PayloadAction<Trip[]>) => {
             state.items = action.payload;
-            state.lastTripNo = state.items.reduce((max, trip) => Math.max(max, trip.tripNo), 0);
             state.loading = false;
         },
         addTrip: (state, action: PayloadAction<Trip>) => {
             state.items.push(action.payload);
-            state.lastTripNo = Math.max(state.lastTripNo, action.payload.tripNo);
         },
         updateTrip: (state, action: PayloadAction<{ id: string; updates: Partial<Trip> }>) => {
             const index = state.items.findIndex((t) => t.id === action.payload.id);

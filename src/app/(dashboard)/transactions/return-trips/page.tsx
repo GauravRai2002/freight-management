@@ -27,7 +27,7 @@ export default function ReturnTripsPage() {
     const [searchQuery, setSearchQuery] = useState("");
 
     const defaultFormData = {
-        tripNo: 0, date: toISODateString(new Date()), billingPartyId: "", billingPartyName: "",
+        tripNo: "", date: toISODateString(new Date()), billingPartyId: "", billingPartyName: "",
         lrNo: "", rtFreight: 0, advanceAmt: 0, shortageAmt: 0, deductionAmt: 0, holdingAmt: 0,
         receivedAmt: 0, pendingAmt: 0, mode: "", toBank: "", remark: "",
     };
@@ -168,7 +168,7 @@ export default function ReturnTripsPage() {
                     <form onSubmit={handleSubmit}>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-3 gap-4">
-                                <div className="grid gap-2"><Label>Trip No</Label><Input type="number" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: Number(e.target.value) })} /></div>
+                                <div className="grid gap-2"><Label>Trip No</Label><Input type="text" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: e.target.value })} /></div>
                                 <div className="grid gap-2"><Label>Date</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></div>
                                 <div className="grid gap-2"><Label>LR Number</Label><Input value={formData.lrNo} onChange={(e) => setFormData({ ...formData, lrNo: e.target.value.toUpperCase() })} /></div>
                             </div>

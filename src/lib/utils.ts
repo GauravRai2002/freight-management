@@ -34,11 +34,3 @@ export function formatDateTime(date: string | Date): string {
 export function toISODateString(date: Date): string {
     return format(date, "yyyy-MM-dd");
 }
-
-export function generateTripNo(): number {
-    const stored = localStorage.getItem("lastTripNo");
-    const lastNo = stored ? parseInt(stored, 10) : 0;
-    const newNo = lastNo + 1;
-    localStorage.setItem("lastTripNo", String(newNo));
-    return newNo;
-}

@@ -12,7 +12,6 @@ export function useTrips() {
     const dispatch = useAppDispatch();
     const trips = useAppSelector((state) => state.trips.items);
     const loading = useAppSelector((state) => state.trips.loading);
-    const lastTripNo = useAppSelector((state) => state.trips.lastTripNo);
     const { getAuthContext } = useAuthContext();
 
     const fetchTrips = useCallback(async () => {
@@ -28,18 +27,18 @@ export function useTrips() {
         }
     }, [dispatch, getAuthContext]);
 
-    const getNextTripNo = useCallback(async (): Promise<number> => {
+    const getNextTripNo = useCallback(async (): Promise<string | null> => {
         try {
             const auth = await getAuthContext();
-            const data = await api.get<{ nextTripNo: number }>("/api/trips/next-number", auth ? { token: auth.token, orgId: auth.orgId } : undefined);
+            const data = await api.get<{ nextTripNo: string }>("/api/trips/next-number", auth ? { token: auth.token, orgId: auth.orgId } : undefined);
             return data.nextTripNo;
         } catch (error) {
             console.error("Failed to get next trip number:", error);
-            return lastTripNo + 1;
+            return null;  // User will enter manually
         }
-    }, [lastTripNo, getAuthContext]);
+    }, [getAuthContext]);
 
-    const createTrip = useCallback(async (data: Omit<Trip, "id" | "createdAt" | "updatedAt" | "tripNo">) => {
+    const createTrip = useCallback(async (data: Omit<Trip, "id" | "createdAt" | "updatedAt">) => {
         toast.loading("Creating trip...");
         try {
             const auth = await getAuthContext();
@@ -86,7 +85,6 @@ export function useTrips() {
     return {
         trips,
         loading,
-        lastTripNo,
         fetchTrips,
         getNextTripNo,
         createTrip,

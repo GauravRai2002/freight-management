@@ -31,7 +31,7 @@ export default function TripBookPage() {
     const [searchQuery, setSearchQuery] = useState("");
 
     const defaultFormData = {
-        tripNo: 0, date: toISODateString(new Date()), lrNo: "", billingPartyId: "", billingPartyName: "",
+        tripNo: "", date: toISODateString(new Date()), lrNo: "", billingPartyId: "", billingPartyName: "",
         freightMode: "FIX" as "FIX" | "PE Ton" | "PE KG", tripAmount: 0, advanceAmt: 0, shortageAmt: 0,
         deductionAmt: 0, holdingAmt: 0, receivedAmt: 0, pendingAmt: 0,
         transporterId: "", transporterName: "", marketVehNo: "", marketFreight: 0, marketAdvance: 0,
@@ -192,7 +192,7 @@ export default function TripBookPage() {
                             <div className="grid gap-4 py-4">
                                 {/* Basic Info */}
                                 <div className="grid grid-cols-4 gap-4">
-                                    <div className="grid gap-2"><Label>Trip No</Label><Input type="number" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: Number(e.target.value) })} required /></div>
+                                    <div className="grid gap-2"><Label>Trip No</Label><Input type="text" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: e.target.value })} required /></div>
                                     <div className="grid gap-2"><Label>Date</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></div>
                                     <div className="grid gap-2"><Label>LR Number</Label><Input value={formData.lrNo} onChange={(e) => setFormData({ ...formData, lrNo: e.target.value.toUpperCase() })} /></div>
                                     <div className="grid gap-2">

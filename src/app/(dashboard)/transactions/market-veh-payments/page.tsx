@@ -27,7 +27,7 @@ export default function MarketVehPaymentsPage() {
     const [searchQuery, setSearchQuery] = useState("");
 
     const defaultFormData = {
-        tripNo: 0, date: toISODateString(new Date()), transporterId: "", transporterName: "",
+        tripNo: "", date: toISODateString(new Date()), transporterId: "", transporterName: "",
         marketVehNo: "", mode: "", paidAmt: 0, lrNo: "", fromBank: "", remark: "", runBal: 0,
     };
     const [formData, setFormData] = useState(defaultFormData);
@@ -156,7 +156,7 @@ export default function MarketVehPaymentsPage() {
                     <form onSubmit={handleSubmit}>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-3 gap-4">
-                                <div className="grid gap-2"><Label>Trip No</Label><Input type="number" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: Number(e.target.value) })} /></div>
+                                <div className="grid gap-2"><Label>Trip No</Label><Input type="text" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: e.target.value })} /></div>
                                 <div className="grid gap-2"><Label>Date</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></div>
                                 <div className="grid gap-2"><Label>LR Number</Label><Input value={formData.lrNo} onChange={(e) => setFormData({ ...formData, lrNo: e.target.value.toUpperCase() })} /></div>
                             </div>

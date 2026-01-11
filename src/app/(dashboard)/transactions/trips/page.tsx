@@ -28,6 +28,7 @@ export default function TripsPage() {
     const [searchQuery, setSearchQuery] = useState("");
 
     const defaultFormData = {
+        tripNo: "",
         date: toISODateString(new Date()),
         vehNo: "",
         driverName: "",
@@ -75,6 +76,7 @@ export default function TripsPage() {
         if (item) {
             setEditingItem(item);
             setFormData({
+                tripNo: item.tripNo,
                 date: item.date.split("T")[0],
                 vehNo: item.vehNo,
                 driverName: item.driverName,
@@ -242,8 +244,20 @@ export default function TripsPage() {
                     <ScrollArea className="max-h-[60vh] pr-4">
                         <form onSubmit={handleSubmit} id="trip-form">
                             <div className="grid gap-4 py-4">
-                                {/* Row 1: Date, Vehicle, Driver */}
-                                <div className="grid grid-cols-3 gap-4">
+                                {/* Row 0: Trip Number */}
+                                <div className="grid grid-cols-4 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="tripNo">Trip Number</Label>
+                                        <Input
+                                            id="tripNo"
+                                            type="text"
+                                            placeholder="e.g., PB-2025/26-001"
+                                            value={formData.tripNo}
+                                            onChange={(e) => setFormData({ ...formData, tripNo: e.target.value })}
+                                            required
+                                            disabled={!!editingItem}  // Disable when editing
+                                        />
+                                    </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="date">Date</Label>
                                         <Input id="date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required />

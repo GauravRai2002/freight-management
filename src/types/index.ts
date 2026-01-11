@@ -89,7 +89,7 @@ export interface StockItem {
 
 export interface Trip {
     id: string;
-    tripNo: number;
+    tripNo: string;
     date: string;
     vehNo: string;
     driverName: string;
@@ -122,7 +122,7 @@ export interface Trip {
 
 export interface TripBook {
     id: string;
-    tripNo: number;
+    tripNo: string;
     date: string;
     lrNo: string;
     billingPartyId: string;
@@ -151,7 +151,7 @@ export interface TripBook {
 
 export interface DriverAdvance {
     id: string;
-    tripNo: number;
+    tripNo: string;
     date: string;
     driverName: string;
     mode: string;
@@ -167,7 +167,7 @@ export interface DriverAdvance {
 
 export interface Expense {
     id: string;
-    tripNo: number;
+    tripNo: string;
     date: string;
     expenseType: string;
     amount: number;
@@ -182,7 +182,7 @@ export interface Expense {
 
 export interface ReturnTrip {
     id: string;
-    tripNo: number;
+    tripNo: string;
     date: string;
     billingPartyId: string;
     billingPartyName: string;
@@ -203,7 +203,7 @@ export interface ReturnTrip {
 
 export interface PartyPayment {
     id: string;
-    tripNo: number;
+    tripNo: string;
     date: string;
     billingPartyId: string;
     billingPartyName: string;
@@ -221,7 +221,7 @@ export interface PartyPayment {
 
 export interface MarketVehPayment {
     id: string;
-    tripNo: number;
+    tripNo: string;
     date: string;
     transporterId: string;
     transporterName: string;

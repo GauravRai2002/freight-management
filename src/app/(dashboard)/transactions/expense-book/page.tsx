@@ -27,7 +27,7 @@ export default function ExpenseBookPage() {
     const [searchQuery, setSearchQuery] = useState("");
 
     const [formData, setFormData] = useState({
-        tripNo: 0, date: toISODateString(new Date()), expenseType: "", amount: 0,
+        tripNo: "", date: toISODateString(new Date()), expenseType: "", amount: 0,
         fromAccount: "", refVehNo: "", remark1: "", remark2: "", isNonTripExp: false,
     });
 
@@ -48,7 +48,7 @@ export default function ExpenseBookPage() {
         try {
             await createExpense(formData);
             setIsDialogOpen(false);
-            setFormData({ tripNo: 0, date: toISODateString(new Date()), expenseType: "", amount: 0, fromAccount: "", refVehNo: "", remark1: "", remark2: "", isNonTripExp: false });
+            setFormData({ tripNo: "", date: toISODateString(new Date()), expenseType: "", amount: 0, fromAccount: "", refVehNo: "", remark1: "", remark2: "", isNonTripExp: false });
         } catch { }
     };
 
@@ -128,7 +128,7 @@ export default function ExpenseBookPage() {
                     <form onSubmit={handleSubmit}>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-3 gap-4">
-                                <div className="grid gap-2"><Label>Trip No (0 for non-trip)</Label><Input type="number" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: Number(e.target.value) })} /></div>
+                                <div className="grid gap-2"><Label>Trip No (empty for non-trip)</Label><Input type="text" value={formData.tripNo} onChange={(e) => setFormData({ ...formData, tripNo: e.target.value })} placeholder="Leave empty for non-trip" /></div>
                                 <div className="grid gap-2"><Label>Date</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></div>
                                 <div className="grid gap-2">
                                     <Label>Expense Type</Label>
