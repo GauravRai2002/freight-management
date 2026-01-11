@@ -13,7 +13,7 @@ import { Truck, Loader2, Eye, EyeOff } from "lucide-react";
 export default function SignUpPage() {
     const { isLoaded, signUp, setActive } = useSignUp();
     const router = useRouter();
-    const { isSignedIn } = useUser();
+    const { isSignedIn, user } = useUser();
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -27,9 +27,15 @@ export default function SignUpPage() {
 
     useEffect(() => {
         if (isSignedIn) {
-            router.push("/");
+            // Check if user has an organization membership
+            const hasOrg = user?.organizationMemberships && user.organizationMemberships.length > 0;
+            if (hasOrg) {
+                router.push("/");
+            } else {
+                router.push("/onboarding");
+            }
         }
-    }, []);
+    }, [isSignedIn, user, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
